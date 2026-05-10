@@ -5,13 +5,7 @@ import numpy as np
 import pandas as pd
 from fastapi import APIRouter, HTTPException
 
-from src.api.metrics import (
-    PREDICTION_COUNTER,
-    PREDICTION_LATENCY,
-    ml_model,
-    stats,
-    stats_lock,
-)
+from src.api.metrics import ml_model, stats, stats_lock
 from src.api.schemas import AccidentFeatures, PredictionResponse
 from src.config.config import FEATURES
 
@@ -34,7 +28,6 @@ def predict(features: AccidentFeatures):
     prediction = int(ml_model["classifier"].predict(input_data)[0])
     proba = ml_model["classifier"].predict_proba(input_data)[0]
     probability = round(float(np.max(proba)), 4)
-
     duration = time.time() - t0
 
     if probability >= 0.80:
@@ -45,9 +38,6 @@ def predict(features: AccidentFeatures):
         confidence = "low"
 
     label = "prioritaire" if prediction == 1 else "non-prioritaire"
-
-    PREDICTION_COUNTER.labels(label=label, confidence=confidence).inc()
-    PREDICTION_LATENCY.observe(duration)
 
     with stats_lock:
         stats["total"] += 1

@@ -29,7 +29,6 @@ async def lifespan(app: FastAPI):
     try:
         if MODEL_PATH.exists():
             state.ml_model["classifier"] = joblib.load(MODEL_PATH)
-            state.MODEL_LOADED_GAUGE.set(1)
             logger.info(
                 "model_loaded=true type=%s path=%s",
                 type(state.ml_model["classifier"]).__name__,
@@ -37,11 +36,9 @@ async def lifespan(app: FastAPI):
             )
         else:
             state.ml_model["classifier"] = None
-            state.MODEL_LOADED_GAUGE.set(0)
             logger.warning("model_loaded=false path=%s — mode dégradé", MODEL_PATH)
     except Exception as exc:
         state.ml_model["classifier"] = None
-        state.MODEL_LOADED_GAUGE.set(0)
         logger.error("model_load_error=%s", exc, exc_info=True)
     yield
     state.ml_model.clear()
@@ -55,9 +52,7 @@ app = FastAPI(
         "- **1 — prioritaire** : victime hospitalisée ou décédée\n"
         "- **0 — non-prioritaire** : victime indemne ou blessée légèrement\n\n"
         "Modèle : **Random Forest Classifier** entraîné sur les données BAAC 2021 "
-        "(France métropolitaine).\n\n"
-        "Monitoring : métriques Prometheus sur `/metrics`, "
-        "dashboard Grafana sur `http://localhost:3000`."
+        "(France métropolitaine)."
     ),
     version="1.0.0",
     contact={"name": "Ibrahima Wane", "email": "ibrahima.wane@outlook.fr"},

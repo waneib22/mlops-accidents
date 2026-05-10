@@ -70,23 +70,6 @@ class TestHealthEndpoint:
         assert data["n_features"] == 28
 
 
-class TestPrometheusEndpoint:
-    def test_metrics_returns_prometheus_format(self, client_with_model):
-        response = client_with_model.get("/metrics")
-        assert response.status_code == 200
-        assert "text/plain" in response.headers["content-type"]
-        assert b"accidents_" in response.content
-
-    def test_metrics_contains_prediction_counter(self, client_with_model):
-        client_with_model.post("/predict", json=SAMPLE_FEATURES)
-        response = client_with_model.get("/metrics")
-        assert b"accidents_predictions_total" in response.content
-
-    def test_metrics_contains_model_gauge(self, client_with_model):
-        response = client_with_model.get("/metrics")
-        assert b"accidents_model_loaded" in response.content
-
-
 class TestStatsEndpoint:
     def test_stats_returns_expected_schema(self, client_with_model):
         response = client_with_model.get("/stats")
@@ -126,13 +109,6 @@ class TestRetrainEndpoint:
             response = client_with_model.post("/retrain")
         assert response.status_code == 202
         assert response.json()["status"] == "accepted"
-
-    def test_retrain_increments_counter(self, client_with_model):
-        from src.api.metrics import RETRAIN_COUNTER
-        before = RETRAIN_COUNTER._value.get()
-        with patch("src.api.routers.monitoring._run_training"):
-            client_with_model.post("/retrain")
-        assert RETRAIN_COUNTER._value.get() == before + 1
 
 
 class TestPredictEndpoint:

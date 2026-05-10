@@ -4,17 +4,9 @@ import subprocess
 import time
 
 import joblib
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Response
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 
-from src.api.metrics import (
-    MODEL_LOADED_GAUGE,
-    RETRAIN_COUNTER,
-    ml_model,
-    startup_time,
-    stats,
-    stats_lock,
-)
+from src.api.metrics import ml_model, startup_time, stats, stats_lock
 from src.api.schemas import HealthResponse, ModelInfoResponse, StatsResponse
 from src.config.config import FEATURES, MODEL_PATH
 
@@ -35,7 +27,6 @@ def _run_training() -> None:
         )
         if result.returncode == 0 and MODEL_PATH.exists():
             ml_model["classifier"] = joblib.load(MODEL_PATH)
-            MODEL_LOADED_GAUGE.set(1)
             logger.info("retrain=success")
         else:
             logger.error("retrain=failed stderr=%s", result.stderr[:500])
@@ -55,11 +46,6 @@ def health():
         uptime_seconds=round(time.time() - startup_time, 2),
         api_version="1.0.0",
     )
-
-
-@router.get("/metrics", include_in_schema=False)
-def prometheus_metrics():
-    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @router.get("/stats", response_model=StatsResponse)
@@ -90,7 +76,6 @@ def model_info():
 
 @router.post("/retrain", status_code=202)
 def retrain(background_tasks: BackgroundTasks):
-    RETRAIN_COUNTER.inc()
     background_tasks.add_task(_run_training)
     logger.info("retrain=requested")
     return {"status": "accepted", "message": "Retraining started in background."}
