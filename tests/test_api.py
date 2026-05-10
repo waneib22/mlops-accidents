@@ -23,23 +23,21 @@ def client_with_model():
     mock_model.predict_proba.return_value = np.array([[0.2, 0.8]])
     mock_model.get_params.return_value = {"n_estimators": 100, "random_state": 42}
 
-    with patch("src.api.main.MODEL_PATH") as mock_path, \
-         patch("src.api.main.joblib.load", return_value=mock_model):
-        mock_path.exists.return_value = True
-
-        from src.api.main import app
-        with TestClient(app) as c:
-            from src.api.main import ml_model
-            ml_model["classifier"] = mock_model
-            yield c
+    import src.api.metrics as state
+    from src.api.main import app
+    state.ml_model["classifier"] = mock_model
+    with TestClient(app) as c:
+        state.ml_model["classifier"] = mock_model
+        yield c
 
 
 @pytest.fixture
 def client_without_model():
-    from src.api.main import app, ml_model
-    ml_model["classifier"] = None
+    import src.api.metrics as state
+    from src.api.main import app
+    state.ml_model["classifier"] = None
     with TestClient(app) as c:
-        ml_model["classifier"] = None
+        state.ml_model["classifier"] = None
         yield c
 
 
@@ -101,10 +99,10 @@ class TestStatsEndpoint:
         assert "non_prioritaire" in data["predictions_by_label"]
 
     def test_stats_increments_on_predict(self, client_with_model):
-        from src.api.main import _stats
-        before = _stats["total"]
+        import src.api.metrics as state
+        before = state.stats["total"]
         client_with_model.post("/predict", json=SAMPLE_FEATURES)
-        assert _stats["total"] == before + 1
+        assert state.stats["total"] == before + 1
 
 
 class TestModelInfoEndpoint:
@@ -124,15 +122,15 @@ class TestModelInfoEndpoint:
 
 class TestRetrainEndpoint:
     def test_retrain_returns_202(self, client_with_model):
-        with patch("src.api.main._run_training"):
+        with patch("src.api.routers.monitoring._run_training"):
             response = client_with_model.post("/retrain")
         assert response.status_code == 202
         assert response.json()["status"] == "accepted"
 
     def test_retrain_increments_counter(self, client_with_model):
-        from src.api.main import RETRAIN_COUNTER
+        from src.api.metrics import RETRAIN_COUNTER
         before = RETRAIN_COUNTER._value.get()
-        with patch("src.api.main._run_training"):
+        with patch("src.api.routers.monitoring._run_training"):
             client_with_model.post("/retrain")
         assert RETRAIN_COUNTER._value.get() == before + 1
 
@@ -161,8 +159,8 @@ class TestPredictEndpoint:
     def test_predict_label_matches_prediction(self, client_with_model):
         response = client_with_model.post("/predict", json=SAMPLE_FEATURES)
         data = response.json()
-        expected_label = "prioritaire" if data["prediction"] == 1 else "non-prioritaire"
-        assert data["label"] == expected_label
+        expected = "prioritaire" if data["prediction"] == 1 else "non-prioritaire"
+        assert data["label"] == expected
 
     def test_predict_without_model_returns_503(self, client_without_model):
         response = client_without_model.post("/predict", json=SAMPLE_FEATURES)
