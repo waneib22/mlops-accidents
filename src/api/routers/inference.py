@@ -1,3 +1,7 @@
+"""Router d'inférence — endpoint de prédiction.
+
+Expose : POST /predict.
+"""
 import logging
 import time
 

@@ -1,3 +1,7 @@
+"""Pydantic schemas for request/response validation.
+
+Chaque classe correspond à un contrat d'interface d'un endpoint de l'API.
+"""
 from typing import Optional
 
 from pydantic import BaseModel

@@ -1,3 +1,8 @@
+"""Script d'entraînement du modèle RandomForestClassifier.
+
+Lit X_train/y_train depuis data/processed/, entraîne le modèle, évalue
+l'accuracy sur X_test/y_test, puis sérialise le modèle avec joblib.
+"""
 import logging
 
 import joblib

@@ -1,3 +1,8 @@
+"""FastAPI application entry point.
+
+Initialise l'application, charge le modèle au démarrage via le contexte
+``lifespan``, et enregistre les deux routers (monitoring, inference).
+"""
 import logging
 from contextlib import asynccontextmanager
 
@@ -55,7 +60,7 @@ app = FastAPI(
         "(France métropolitaine)."
     ),
     version="1.0.0",
-    contact={"name": "Ibrahima Wane", "email": "ibrahima.wane@outlook.fr"},
+    contact={"url": "https://github.com/waneib22/mlops-accidents/issues"},
     license_info={"name": "MIT"},
     openapi_tags=_TAGS,
     lifespan=lifespan,

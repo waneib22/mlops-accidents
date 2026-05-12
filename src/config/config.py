@@ -1,3 +1,8 @@
+"""Configuration centralisée du projet.
+
+Chemins, constantes et liste des features partagés par tous les modules.
+Modifier ce fichier suffit pour propager un changement à l'ensemble du pipeline.
+"""
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]

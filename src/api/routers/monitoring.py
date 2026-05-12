@@ -1,3 +1,7 @@
+"""Router de monitoring — endpoints opérationnels.
+
+Expose : /health, /stats, /model/info, /retrain.
+"""
 import logging
 import os
 import subprocess
