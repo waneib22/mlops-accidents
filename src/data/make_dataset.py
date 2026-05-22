@@ -47,16 +47,12 @@ def process_data(input_filepath_users, input_filepath_caract, input_filepath_pla
     for i in df_users["victim_age"] :
         if (i>120)|(i<0):
             df_users["victim_age"].replace(i,np.nan)
-    hrmn_str = df_caract["hrmn"].astype(str).str.strip()
-    if hrmn_str.str.contains(":").any():
-        df_caract["hour"] = hrmn_str.str.split(":").str[0].astype(int)
-    else:
-        df_caract["hour"] = hrmn_str.astype(int) // 100
+    df_caract["hour"] = df_caract["hrmn"].astype(str).apply(lambda x : x[:-3])
     df_caract.drop(['hrmn', 'an'], inplace=True, axis=1)
     df_users.drop(['an_nais'], inplace=True, axis=1)
 
     #--Replacing names 
-    df_users["grav"] = df_users["grav"].replace([1, 2, 3, 4], [1, 3, 4, 2])
+    df_users.grav.replace([1,2,3,4], [1,3,4,2], inplace = True)
     df_caract.rename({"agg" : "agg_"},  inplace = True, axis = 1)
     corse_replace = {"2A":"201", "2B":"202"}
     df_caract["dep"] = df_caract["dep"].str.replace("2A", "201")
@@ -78,7 +74,7 @@ def process_data(input_filepath_users, input_filepath_caract, input_filepath_pla
     df_caract["atm"] = df_caract["atm"].replace(dico)
     catv_value = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,30,31,32,33,34,35,36,37,38,39,40,41,42,43,50,60,80,99]
     catv_value_new = [0,1,1,2,1,1,6,2,5,5,5,5,5,4,4,4,4,4,3,3,4,4,1,1,1,1,1,6,6,3,3,3,3,1,1,1,1,1,0,0]
-    df_veh["catv"] = df_veh["catv"].replace(catv_value, catv_value_new)
+    df_veh['catv'].replace(catv_value, catv_value_new, inplace = True)
 
     #--Merging datasets 
     fusion1= df_users.merge(df_veh, on = ["Num_Acc","num_veh", "id_vehicule"], how="inner")
@@ -94,7 +90,7 @@ def process_data(input_filepath_users, input_filepath_caract, input_filepath_pla
     df.rename({"count" :"nb_vehicules"},axis = 1, inplace = True)
 
     #--Modification of the target variable  : 1 : prioritary // 0 : non-prioritary
-    df["grav"] = df["grav"].replace([2, 3, 4], [0, 1, 1])
+    df['grav'].replace([2,3,4], [0,1,1], inplace=True)
 
 
     #--Replacing values -1 and 0 

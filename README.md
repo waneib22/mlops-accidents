@@ -1,336 +1,107 @@
-# Accidents Routiers — MLOps Pipeline
-
-![CI](https://github.com/waneib22/mlops-accidents/actions/workflows/python-app.yml/badge.svg)
-![Python](https://img.shields.io/badge/python-3.10-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688.svg)
-![Docker](https://img.shields.io/badge/docker-ready-2496ED.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-
-Projet MLOps de classification de la gravité d'accidents de la route en France.  
-Les données proviennent des **Bases de données annuelles des accidents corporels (BAAC) 2021** publiées sur [data.gouv.fr](https://www.data.gouv.fr).
-
----
-
-## Table des matières
-
-- [Contexte](#contexte)
-- [Architecture](#architecture)
-- [Prérequis](#prérequis)
-- [Installation](#installation)
-- [Pipeline de données](#pipeline-de-données)
-- [Entraînement du modèle](#entraînement-du-modèle)
-- [API](#api)
-- [Docker](#docker)
-- [Tests](#tests)
-- [Structure du projet](#structure-du-projet)
-- [Contributeurs](#contributeurs)
-
----
-
-## Contexte
-
-Ce projet implémente la **Phase 1 (Fondations)** d'un pipeline MLOps complet.  
-L'objectif est de prédire la gravité d'un accident de la route en deux classes :
-
-| Classe | Label | Signification |
-|--------|-------|--------------|
-| `1` | **prioritaire** | Victime hospitalisée ou décédée |
-| `0` | **non-prioritaire** | Victime indemne ou blessée légèrement |
-
-Le modèle est un **Random Forest Classifier** entraîné sur ~54 000 accidents (split 70/30).
-
----
-
-## Architecture
-
-```
-┌──────────────────────────────────────────────────┐
-│                  Docker Compose                   │
-│                                                   │
-│  ┌────────────────────────────────────────────┐  │
-│  │  accidents_api  (python:3.10-slim)          │  │
-│  │                                             │  │
-│  │  GET  /            → redirect /docs         │  │
-│  │  GET  /health      → statut du modèle       │  │
-│  │  GET  /stats       → compteurs JSON         │  │
-│  │  GET  /model/info  → hyperparamètres        │  │
-│  │  POST /predict     → inférence              │  │
-│  │  POST /retrain     → ré-entraînement        │  │
-│  │                                             │  │
-│  │  :8000                                      │  │
-│  └────────────────────────────────────────────┘  │
-│       │                        │                  │
-│  ./data:/app/data    ./src/models:/app/src/models │
-└──────────────────────────────────────────────────┘
-```
-
-### Structure interne de l'API
+Project Name
+==============================
 
-```
-src/api/
-├── main.py           ← application FastAPI + lifespan
-├── schemas.py        ← modèles Pydantic (requêtes / réponses)
-├── metrics.py        ← état partagé en mémoire
-└── routers/
-    ├── monitoring.py ← /health /stats /model/info /retrain
-    └── inference.py  ← /predict
-```
-
----
-
-## Prérequis
-
-| Outil | Version minimale |
-|-------|-----------------|
-| Python | 3.10 |
-| pip | 23+ |
-| Docker Desktop | 24+ |
-| Make | — |
-
----
-
-## Installation
+This project is a starting Pack for MLOps projects based on the subject "road accident". It's not perfect so feel free to make some modifications on it.
 
-```bash
-# 1. Cloner le dépôt
-git clone https://github.com/waneib22/mlops-accidents.git
-cd mlops-accidents
-
-# 2. Créer et activer un environnement virtuel
-python3 -m venv venv
-source venv/bin/activate
+Project Organization
+------------
 
-# 3. Installer les dépendances
-make install
-```
-
----
+    ├── LICENSE
+    ├── README.md          <- The top-level README for developers using this project.
+    ├── data
+    │   ├── external       <- Data from third party sources.
+    │   ├── interim        <- Intermediate data that has been transformed.
+    │   ├── processed      <- The final, canonical data sets for modeling.
+    │   └── raw            <- The original, immutable data dump.
+    │
+    ├── logs               <- Logs from training and predicting
+    │
+    ├── models             <- Trained and serialized models, model predictions, or model summaries
+    │
+    ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
+    │                         the creator's initials, and a short `-` delimited description, e.g.
+    │                         `1.0-jqp-initial-data-exploration`.
+    │
+    ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
+    │
+    ├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
+    │   └── figures        <- Generated graphics and figures to be used in reporting
+    │
+    ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
+    │                         generated with `pip freeze > requirements.txt`
+    │
+    ├── src                <- Source code for use in this project.
+    │   ├── __init__.py    <- Makes src a Python module
+    │   │
+    │   ├── data           <- Scripts to download or generate data
+    │   │   ├── check_structure.py    
+    │   │   ├── import_raw_data.py 
+    │   │   └── make_dataset.py
+    │   │
+    │   ├── features       <- Scripts to turn raw data into features for modeling
+    │   │   └── build_features.py
+    │   │
+    │   ├── models         <- Scripts to train models and then use trained models to make
+    │   │   │                 predictions
+    │   │   ├── predict_model.py
+    │   │   └── train_model.py
+    │   │
+    │   ├── visualization  <- Scripts to create exploratory and results oriented visualizations
+    │   │   └── visualize.py
+    │   └── config         <- Describe the parameters used in train_model.py and predict_model.py
 
-## Pipeline de données
+---------
 
-Les données brutes sont téléchargées depuis le bucket S3 DataScientest.
+## Steps to follow 
 
-```bash
-# Étape 1 — Télécharger les 4 fichiers CSV bruts
-PYTHONPATH=. python3 src/data/import_raw_data.py
-
-# Étape 2 — Préprocesser et créer les jeux train/test
-PYTHONPATH=. python3 src/data/make_dataset.py
-```
+Convention : All python scripts must be run from the root specifying the relative file path.
 
-Cela produit dans `data/processed/` :
+### 1- Create a virtual environment using Virtualenv.
 
-| Fichier | Contenu |
-|---------|---------|
-| `X_train.csv` | Features d'entraînement (70%) |
-| `X_test.csv` | Features de test (30%) |
-| `y_train.csv` | Labels d'entraînement |
-| `y_test.csv` | Labels de test |
+    `python -m venv my_env`
 
-Transformations appliquées :
-- Fusion des 4 tables (usagers, caractéristiques, lieux, véhicules)
-- Recodage de la variable cible `grav` en binaire
-- Extraction de l'heure depuis `hrmn`
-- Calcul de l'âge de la victime
-- Remplacement des codes Corse (`2A` → `201`, `2B` → `202`)
-- Conversion lat/long (virgule → point)
-- Remplacement des valeurs `-1` par `NaN`
-- Imputation par le mode sur les colonnes sélectionnées
+###   Activate it 
 
-Pour plus de détails : [docs/data_pipeline.md](docs/data_pipeline.md)
+    `./my_env/Scripts/activate`
 
----
+###   Install the packages from requirements.txt
 
-## Entraînement du modèle
+    `pip install -r .\requirements.txt` ### You will have an error in "setup.py" but this won't interfere with the rest
 
-```bash
-make train
-```
+### 2- Execute import_raw_data.py to import the 4 datasets.
 
-Le modèle est sauvegardé dans `src/models/trained_model.joblib`.
+    `python .\src\data\import_raw_data.py` ### It will ask you to create a new folder, accept it.
 
-| Paramètre | Valeur |
-|-----------|--------|
-| Algorithme | `RandomForestClassifier` |
-| `n_estimators` | 100 |
-| `random_state` | 42 |
-| `n_jobs` | -1 |
-| Accuracy (test set) | ~77% |
+### 3- Execute make_dataset.py initializing `./data/raw` as input file path and `./data/preprocessed` as output file path.
 
-Pour plus de détails : [docs/model.md](docs/model.md)
+    `python .\src\data\make_dataset.py`
 
----
+### 4- Execute train_model.py to instanciate the model in joblib format
 
-## API
+    `python .\src\models\train_model.py`
 
-### Lancer en local
+### 5- Finally, execute predict_model.py with respect to one of these rules :
+  
+  - Provide a json file as follow : 
 
-```bash
-make api
-# → http://localhost:8000/docs
-```
+    
+    `python ./src/models/predict_model.py ./src/models/test_features.json`
 
-### Endpoints
+  test_features.json is an example that you can try 
 
-| Méthode | Endpoint | Description |
-|---------|----------|-------------|
-| `GET` | `/` | Redirige vers `/docs` |
-| `GET` | `/docs` | Documentation interactive Swagger |
-| `GET` | `/health` | Statut de l'API et du modèle |
-| `GET` | `/stats` | Compteurs de prédictions |
-| `GET` | `/model/info` | Hyperparamètres du modèle chargé |
-| `POST` | `/predict` | Prédiction de gravité |
-| `POST` | `/retrain` | Déclenche un ré-entraînement |
+  - If you do not specify a json file, you will be asked to enter manually each feature. 
 
-### Exemple de prédiction
 
-```bash
-make predict
-```
+------------------------
 
-Ou manuellement :
+<p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
 
-```bash
-curl -X POST http://localhost:8000/predict \
-  -H "Content-Type: application/json" \
-  -d '{
-    "place": 10, "catu": 3, "sexe": 1, "secu1": 0.0,
-    "year_acc": 2021, "victim_age": 60, "catv": 2, "obsm": 1,
-    "motor": 1, "catr": 3, "circ": 2, "surf": 1, "situ": 1,
-    "vma": 50, "jour": 7, "mois": 12, "lum": 5, "dep": 77,
-    "com": 77317, "agg_": 2, "int": 1, "atm": 0, "col": 6,
-    "lat": 48.60, "long": 2.89, "hour": 17,
-    "nb_victim": 2, "nb_vehicules": 1
-  }'
-```
-
-Réponse :
-
-```json
-{
-  "prediction": 1,
-  "label": "prioritaire",
-  "probability": 0.8423,
-  "confidence": "high"
-}
-```
-
-Pour la référence complète des endpoints : [docs/api.md](docs/api.md)
-
----
-
-## Docker
-
-### Lancer la stack complète
-
-```bash
-make docker-up
-```
-
-L'API est disponible sur `http://localhost:8000`.
-
-### Commandes utiles
-
-```bash
-make docker-down   # arrêter les containers
-docker compose ps  # vérifier l'état des services
-docker compose logs api --follow  # suivre les logs de l'API
-```
-
-### Variables d'environnement
-
-Copier `.env.example` en `.env` et adapter si nécessaire :
-
-```bash
-cp .env.example .env
-```
-
----
-
-## Tests
-
-```bash
-make test
-```
-
-La suite de tests couvre :
-
-| Fichier | Scope | Nombre de tests |
-|---------|-------|----------------|
-| `tests/test_data.py` | Transformations données, config | 11 |
-| `tests/test_api.py` | Endpoints API (mocks) | 13 |
-
-Coverage minimum requis : **60%** (vérifié par la CI).
-
----
-
-## Commandes disponibles
-
-```bash
-make help       # liste toutes les commandes
-make install    # installe les dépendances
-make lint       # vérifie le style (flake8)
-make test       # lance les tests avec coverage
-make api        # démarre l'API en mode développement
-make train      # entraîne le modèle
-make health     # vérifie l'état de l'API
-make predict    # envoie une prédiction exemple
-make retrain    # déclenche un ré-entraînement via l'API
-make docker-up  # lance la stack Docker
-make docker-down# arrête la stack Docker
-make clean      # nettoie les artefacts
-```
-
----
-
-## Structure du projet
-
-```
-mlops-accidents/
-├── .github/workflows/
-│   └── python-app.yml     ← CI : lint → test (coverage ≥ 60%)
-├── config/                ← (réservé aux phases suivantes)
-├── data/
-│   ├── raw/               ← données brutes (ignorées par git)
-│   └── processed/         ← données préprocessées (ignorées par git)
-├── docs/
-│   ├── api.md             ← référence complète des endpoints
-│   ├── data_pipeline.md   ← détail du pipeline de données
-│   └── model.md           ← description du modèle
-├── notebooks/             ← exploration initiale des données
-├── src/
-│   ├── api/
-│   │   ├── main.py        ← app FastAPI + lifespan
-│   │   ├── schemas.py     ← modèles Pydantic
-│   │   ├── metrics.py     ← état partagé
-│   │   └── routers/
-│   │       ├── monitoring.py
-│   │       └── inference.py
-│   ├── config/
-│   │   └── config.py      ← configuration centralisée
-│   ├── data/
-│   │   ├── import_raw_data.py
-│   │   └── make_dataset.py
-│   └── models/
-│       └── train_model.py
-├── tests/
-│   ├── test_api.py
-│   └── test_data.py
-├── .env.example
-├── Dockerfile
-├── Makefile
-├── docker-compose.yml
-└── requirements.txt
-```
-
----
-
-## Licence
-
-Ce projet est sous licence [MIT](LICENSE).
-
----
-
-<p align="center">
-  Projet MLOps — <a href="https://datascientest.com">DataScientest</a> × Liora — 2025/2026
-</p>
+
+POUR LES API :
+Création dossier api : mkdir api
+│
+├── api/
+│   ├── test_api.py                vérifier que FastAPI fonctionne 
+│   ├── prediction_api.py          afficher les prédictions
+│   ├── metric_api.py             afficher les performances du modèle
+│   └── main_api.py                    regroupe toutes les api (bonnes pratiques pour MLOps)
