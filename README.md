@@ -95,3 +95,13 @@ Convention : All python scripts must be run from the root specifying the relativ
 ------------------------
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
+
+
+POUR LES API :
+Création dossier api : mkdir api
+│
+├── api/
+│   ├── test_api.py                vérifier que FastAPI fonctionne 
+│   ├── prediction_api.py          afficher les prédictions
+│   ├── metric_api.py             afficher les performances du modèle
+│   └── main_api.py                    regroupe toutes les api (bonnes pratiques pour MLOps)
