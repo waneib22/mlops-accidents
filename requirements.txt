@@ -1,5 +1,5 @@
 # local package
--e .
+#-e .
 
 # external requirements
 click
@@ -16,3 +16,8 @@ imbalanced-learn
 joblib
 #sys
 #json
+
+#API
+fastapi
+uvicorn
+pydantic

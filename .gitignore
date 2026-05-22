@@ -91,3 +91,15 @@ target/
 # Mypy cache
 .mypy_cache/
 *.joblib
+
+# UV
+.venv/
+uv.lock
+.python-version
+
+# Modèle entraîné
+*.joblib
+
+# Docker
+.dockerignore
+
