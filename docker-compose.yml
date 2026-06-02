@@ -1,0 +1,16 @@
+services:
+
+  api:
+    build: .
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+
+  trainer:
+    build: .
+    command: sh -c "python src/collect.py && python src/process.py && python src/train.py"
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
