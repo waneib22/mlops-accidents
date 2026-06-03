@@ -80,7 +80,7 @@ def predict(data: InputData):
 
 
 #Rappel :
-#prediction resultat10:52Claude a répondu : La prédiction retourne la gravité de l'accident.La prédiction retourne la gravité de l'accident. Dans le dataset accidents routiers français, la variable cible est grav :
+#prediction La prédiction retourne la gravité de l'accident.La prédiction retourne la gravité de l'accident. Dans le dataset accidents routiers français, la variable cible est grav :
 
 # 1 : indemne 
 # 2 : tué
