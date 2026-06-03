@@ -4,7 +4,7 @@ setup(
     name = 'src',
     packages=find_packages(),
     version='0.1.0',
-    description='This project is a starting Pack for MLOps project.',
+    description='This project is a starting Pack for MLOps project. ',
     author='DataScientest',
     license='MIT',
 )
