@@ -97,9 +97,15 @@ target/
 uv.lock
 .python-version
 
-# Modèle entraîné
+# Bloquer les fichiers de modèles entrainés qui sont lourds
 *.joblib
+*.pkl
 
 # Docker
 .dockerignore
 
+# MLflow
+mlruns/
+
+# Bloquer la base de données MLflow locale si elle est créée par erreur
+mlflow.db
