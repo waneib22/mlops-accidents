@@ -21,3 +21,6 @@ joblib
 fastapi
 uvicorn
 pydantic
+
+#MLFLOW
+mlflow
