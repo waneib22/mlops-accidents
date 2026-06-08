@@ -24,3 +24,6 @@ pydantic
 
 #MLFLOW
 mlflow
+
+# Monitoring
+prometheus-fastapi-instrumentator
