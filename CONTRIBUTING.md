@@ -23,8 +23,8 @@ cd mlops-accidents
 
 # 2. Créer un environnement virtuel
 python3 -m venv venv
-source venv/bin/activate    # Linux / macOS
-# venv\Scripts\activate     # Windows
+source .venv/bin/activate    # Linux / macOS
+# .venv\Scripts\activate     # Windows
 
 # 3. Installer les dépendances (mode éditable)
 make install
