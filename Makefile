@@ -17,7 +17,6 @@ help:
 	@echo "  make predict     Predictions du model (lancer make api puis faire la commande dans nouveau terminal)"
 	@echo "  make docker-up   Start docker stack"
 	@echo "  make docker-down Stop docker stack"
-
 	@echo "  make clean       Clean project"
 	@echo ""
 
