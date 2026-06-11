@@ -11,6 +11,7 @@ env/
 myenv/
 my_env/
 venv/
+.venv/
 build/
 develop-eggs/
 dist/
@@ -79,7 +80,7 @@ target/
 .ipynb_checkpoints/
 
 # exclude data from source control by default
-/data/
+#/data/ git n'ignore plus data, car on va utiliser dvc
 
 # Mac OS-specific storage files
 .DS_Store
