@@ -56,7 +56,7 @@ Project Organization
 
 Convention : All python scripts must be run from the root specifying the relative file path.
 
-### 1- Create a virtual environment using Virtualenv.
+### 1- Create a virtual environment using Virtualenv. Python 3.10 required
 
     `python -m venv my_env`
 
