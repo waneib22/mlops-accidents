@@ -32,3 +32,6 @@ protobuf<4
 #dvc
 dvc[gdrive]>=3.0
 
+
+# Monitoring
+prometheus-fastapi-instrumentator
