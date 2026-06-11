@@ -5,9 +5,11 @@
 click
 Sphinx
 coverage
+
 #awscli>=1.29.0
 flake8
 pandas
+
 #logging
 numpy 
 pathlib 
@@ -24,6 +26,12 @@ pydantic
 
 #MLFLOW
 mlflow
+protobuf<4   
+
+#versioning data
+#dvc
+dvc[gdrive]>=3.0
+
 
 # Monitoring
 prometheus-fastapi-instrumentator

@@ -11,13 +11,12 @@ help:
 	@echo "  ======================================="
 	@echo "  make install     Install dependencies (uv)"
 	@echo "  make lint        Run flake8 linter"
-	@echo "  make api         Start API"
-	@echo "  make mlflow      Start MLFlow server ui"
+	@echo "  make mlflow      Start MLFlow tracking server ui"
 	@echo "  make train       Train model"
+	@echo "  make api         Start API"
 	@echo "  make predict     Predictions du model (lancer make api puis faire la commande dans nouveau terminal)"
 	@echo "  make docker-up   Start docker stack"
 	@echo "  make docker-down Stop docker stack"
-
 	@echo "  make clean       Clean project"
 	@echo ""
 
