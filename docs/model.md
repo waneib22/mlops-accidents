@@ -115,7 +115,7 @@ Le fichier est ignoré par git (`.gitignore`) — chaque déploiement nécessite
 Le modèle doit être chargé avec la **même version de scikit-learn** que celle utilisée lors de l'entraînement. Pour éviter tout problème :
 
 - En local : `make train` dans l'environnement virtuel.
-- En Docker : `docker exec accidents_api python3 src/models/train_model.py` pour entraîner dans le conteneur.
+- En Docker : ???
 
 ---
 
@@ -126,7 +126,7 @@ Le modèle doit être chargé avec la **même version de scikit-learn** que cell
 make train
 
 # Dans le conteneur Docker (recommandé pour la cohérence des versions)
-docker exec accidents_api python3 src/models/train_model.py
+docker ???
 ```
 
 Logs attendus :
@@ -141,7 +141,7 @@ Logs attendus :
 
 ---
 
-## Ré-entraînement via l'API
+## Ré-entraînement via l'API ??? PAS D'API RETRAIN
 
 L'endpoint `POST /retrain` déclenche un ré-entraînement en arrière-plan (thread séparé) :
 
@@ -153,11 +153,3 @@ Le modèle est rechargé en mémoire automatiquement à la fin du script, sans r
 
 ---
 
-## Évolutions prévues (Phase 2+)
-
-- Tracking des expériences avec **MLflow** (paramètres, métriques, artefacts).
-- Comparaison avec d'autres algorithmes (XGBoost, LightGBM, Logistic Regression).
-- Optimisation des hyperparamètres (GridSearchCV / Optuna).
-- Métriques supplémentaires : F1-score, ROC-AUC, PR-AUC.
-- Gestion du déséquilibre de classes : `class_weight="balanced"` ou SMOTE.
-- Drift detection et monitoring en production.
