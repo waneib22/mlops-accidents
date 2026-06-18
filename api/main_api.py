@@ -69,7 +69,7 @@ class InputData(BaseModel):
 # ─────────────────────────────────────────
 @app.get("/", tags=["Test"])
 def home():
-    return {"message": "API principale active"}
+    return {"message": "API active"}
 
 
 # ─────────────────────────────────────────
@@ -107,7 +107,7 @@ def report():
 # ─────────────────────────────────────────
 @app.get("/health", tags=["Test"])
 def health():
-    return {"status": "ok"}
+    return {"status": "je suis une API qui fonctionne au top de sa forme 😏"}
 
 
 # Lancer : uvicorn api.main_api:app --reload
