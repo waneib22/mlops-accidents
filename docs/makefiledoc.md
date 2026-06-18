@@ -36,33 +36,6 @@ Intérêt:
 
 # 2. Gestion des données avec DVC
 
-## `make data-pull`
-Description : Télécharge les dernières versions des données depuis le stockage distant DVC.
-
-Commande:
-```bash
-dvc pull data/raw.dvc data/preprocessed.dvc
-```
-Intérêt: 
-* Récupère les données brutes et prétraitées.
-* Assure que l'entraînement est effectué sur les données les plus récentes.
-
--------------------------------------
-
-## `make model-pull`
-Description: Télécharge le dernier modèle entraîné depuis le stockage DVC.
-
-Commande :
-```bash
-dvc pull src/models/trained_model.joblib.dvc
-```
-
-Intérêt:
-* Permet de récupérer rapidement un modèle déjà entraîné.
-* Évite de relancer un entraînement coûteux.
-
--------------------------------------
-
 ## `make pull-all`
 Description:Télécharge tous les fichiers suivis par DVC.
 
@@ -96,18 +69,49 @@ Intérêt:
 
 ## `make push-model`
 Description:
-Versionne et publie le modèle entraîné.
+Publie les dernières versions du modèle et des artefacts associés vers le stockage DVC distant et le dépôt Git.
 
 Étapes réalisées:
-1. Ajout du modèle dans DVC.
-2. Mise à jour du fichier `.dvc`.
-3. Commit Git.
-4. Push DVC.
-5. Push Git.
+1. Vérifie les modifications du pipeline DVC (dvc.lock, dvc.yaml).
+2. Effectue un commit Git des changements si nécessaire.
+3. Envoie les artefacts versionnés (modèle, métriques, données suivies par DVC) vers le remote DVC avec dvc push.
+4. Envoie les modifications du code et du pipeline vers le dépôt Git distant.
 
 Intérêt:
-* Conserve l'historique des modèles.
-* Permet de retrouver facilement une version de modèle utilisée en production.
+* Sauvegarde et partage les dernières versions du modèle.
+* Garantit la cohérence entre le code, les données et les artefacts ML.
+* Permet à l'équipe de récupérer exactement la même version du modèle via Git et DVC.
+* Facilite la reproductibilité et le déploiement.
+
+------------------------------------------
+## make dvc-repro
+Description:
+Exécute automatiquement le pipeline DVC défini dans `dvc.yaml`.
+
+Selon les modifications détectées, DVC relance uniquement les étapes nécessaires du pipeline :
+```text
+import_data → preprocess → train → evaluate
+```
+
+Étapes réalisées:
+1. Analyse les dépendances déclarées dans `dvc.yaml` et enregistrées dans `dvc.lock`.
+2. Vérifie si les données, le code ou les artefacts ont été modifiés.
+3. Détermine quelles étapes doivent être recalculées.
+4. Exécute uniquement les stages impactés.
+5. Met à jour les artefacts produits :
+
+   * données brutes (`data/raw`)
+   * données prétraitées (`data/preprocessed`)
+   * modèle entraîné (`trained_model.joblib`)
+   * métriques d'évaluation
+
+Intérêt:
+* Assure la reproductibilité complète du pipeline Machine Learning.
+* Évite les réexécutions inutiles.
+* Garantit la cohérence entre les données, le code et les résultats.
+* Simplifie le réentraînement et l'évaluation après une modification du projet.
+* Constitue le point d'entrée principal pour reconstruire l'ensemble de la chaîne de traitement.
+
 
 -------------------------------------------------------
 -------------------------------------------------------

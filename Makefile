@@ -12,13 +12,13 @@ help:
 	@echo "  make install     Install dependencies (uv)"
 	@echo "  make lint        Run flake8 linter"
 	@echo "  make mlflow      Start MLFlow tracking server ui"
-	@echo "  make data-pull   Pull latest data from DVC remote"
-	@echo "  make model-pull  Pull latest trained model from DVC remote"
-	@echo "  make pull-all    Pull all DVC-tracked data and models"
-	@echo "  make train       Train model"
-	@echo "  make evaluate    Evaluate model"
+	@echo "  make dvc-repro   Run full DVC pipeline (import data + preprocess + train + evaluate if needed)"
+	@echo "  make pull-all    Pull all DVC-tracked data and models (manual execution)"
+	@echo "  make train       Train model(manual execution)"
+	@echo "  make evaluate    Evaluate model (manual execution)"
 	@echo "  make push-data   Push data changes to DVC remote"
 	@echo "  make push-model  Push trained model to DVC remote"
+	@echo "  make pip-status  Show the status pipeline , changed or not "
 	@echo "  make api         Start API"
 	@echo "  make predict     Predictions du model (lancer make api puis faire la commande dans nouveau terminal)"
 	@echo "  make docker-up   Start docker stack"
@@ -32,25 +32,8 @@ install:
 lint:    #Qualité du code
 	flake8 src/
 
-data-pull:  # DVC : récupération des données 
-	dvc pull data/raw.dvc data/preprocessed.dvc
-
-model-pull: # DVC : récupération du modèle entrainé
-	dvc pull src/models/trained_model.joblib.dvc
-
-pull-all: # DVC : récupération des données et du modèle
-	dvc pull
-
-push-data: # DVC : envoi des données si modification
-	dvc add data/raw data/preprocessed
-	dvc push
-
-push-model: # DVC : envoi du modèle si modification
-	dvc add src/models/trained_model.joblib
-	dvc push
-
 api:
-	PYTHONPATH=. $(UVICORN) api.main_api:app --reload --host 0.0.0.0 --port 8000
+	$(UVICORN) api.main_api:app --reload --host 0.0.0.0 --port 8000
 
 mlflow:
 	mlflow server \
@@ -59,6 +42,21 @@ mlflow:
 	--backend-store-uri sqlite:///mlflow.db \
 	--default-artifact-root ./mlruns \
 	--serve-artifacts
+
+dvc-repro:   # Recupere la totalité de la pipeline DVC via dvc.yaml
+	dvc repro
+
+pull-all: # DVC : récupération des données et du modèle
+	dvc pull
+
+push-all: # Envoie sur DVC et Git si nvx changements
+	git add dvc.yaml dvc.lock
+	git commit -m "Sync DVC pipeline" || true
+	dvc push
+	git push origin $$(git branch --show-current)
+
+pip-status:
+	dvc status
 
 train: data-pull #(train: data-pull) — ça garantit qu'on a toujours les données à jour avant d'entraîner)
 	PYTHONPATH=. $(PYTHON) src/models/train_model.py
@@ -76,15 +74,11 @@ predict:
 		-d @src/models/test_features.json \
 		| python -m json.tool
 	
-docker-up:
+docker-up: pull-all #pour être sur que l'on a bien recuperer les données et le modèle 
 	docker compose up --build
 
 docker-down:
 	docker compose down
-
-
-
-
 
 clean:
 	python -c "import shutil, pathlib; [p.unlink() for p in pathlib.Path('.').rglob('*.pyc')]"

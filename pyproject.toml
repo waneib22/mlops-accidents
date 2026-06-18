@@ -15,6 +15,7 @@ dependencies = [
     "numpy>=2.4.6",
     "pandas>=3.0.3",
     "pathlib>=1.0.1",
+    "prometheus-fastapi-instrumentator>=8.0.0",
     "pydantic>=2.13.4",
     "scikit-learn>=1.8.0",
     "sphinx>=9.1.0",
