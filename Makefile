@@ -46,7 +46,8 @@ dvc-repro:   # Recupere la totalité de la pipeline DVC via dvc.yaml
 	dvc repro
 
 pull-all: # DVC : récupération des données et du modèle
-	dvc pull
+	dvc pull  
+	#dvc pull -r dagshub
 
 push-all: # Envoie sur DVC et Git si nvx changements
 	git add -A #(ajout fichiers modifiés , nouveaux , supprimés)
@@ -91,3 +92,4 @@ clean:
 	rmdir /s /q __pycache__ 2>NUL || true
 	rmdir /s /q .pytest_cache 2>NUL || true
 	rmdir /s /q htmlcov 2>NUL || true
+	
