@@ -29,7 +29,7 @@ def train():
     with mlflow.start_run(run_name="RandomForest_Baseline_Mélanie"):
 
         # Params à tracker
-        n_estimators = 50
+        n_estimators = 100
         mlflow.log_params({
                 "n_estimators": n_estimators,
                 "model": "RandomForest",
