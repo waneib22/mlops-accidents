@@ -49,11 +49,17 @@ pull-all: # DVC : récupération des données et du modèle
 	dvc pull
 
 push-all: # Envoie sur DVC et Git si nvx changements
-	git add dvc.yaml dvc.lock
-	git add Makefile api docs pyproject.toml src metrics || true
+	git add -A #(ajout fichiers modifiés , nouveaux , supprimés)
 	git commit -m "Sync MLOps pipeline" || true
-	dvc push
+
+	# push code GitHub
 	git push origin $$(git branch --show-current)
+
+	# push code DagsHub
+	git push dagshub $$(git branch --show-current)
+
+	# push data DVC (vers DagsHub remote configuré)
+	dvc push
 
 pip-status:
 	dvc status
