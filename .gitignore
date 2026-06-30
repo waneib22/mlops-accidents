@@ -103,3 +103,8 @@ uv.lock
 # Docker
 .dockerignore
 
+# DVC local config (credentials)
+.dvc/config.local
+
+.dvc/config.local
+.env
