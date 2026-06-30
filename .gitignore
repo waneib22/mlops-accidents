@@ -106,3 +106,6 @@ mlruns/
 
 # Bloquer la base de données MLflow locale si elle est créée par erreur
 mlflow.db
+
+#Garder mes identifiants dvc remote en local :
+.dvc/config.local
