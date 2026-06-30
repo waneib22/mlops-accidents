@@ -1,0 +1,7 @@
+[core]
+    remote = remote_dagshub
+['remote "remote_storage"']
+    url = gdrive://1IZIBGWgXOc79jA3UXXmb5N731MPsjs49
+['remote "remote_dagshub"']
+    url = https://dagshub.com/Melanie94480/mlops-melanie.dvc
+    auth = basic
