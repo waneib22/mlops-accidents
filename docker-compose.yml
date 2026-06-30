@@ -1,6 +1,9 @@
 
 services:
 
+# ─────────────────────
+# API FastAPI
+# ─────────────────────
   api:
     build:
       context: .
@@ -8,12 +11,64 @@ services:
     container_name: accidents_api
     ports:
       - "8000:8000"
-
     volumes:
       - ./data:/app/data
       - ./src:/app/src
       - ./api:/app/api
 
-    #environment:
-    #  - PYTHONUNBUFFERED=1
 
+# ─────────────────────
+# MLflow tracking server
+# ─────────────────────
+  mlflow:
+    image: python:3.10-slim
+    container_name: mlflow_server
+    working_dir: /mlflow
+    volumes:
+      - ./mlflow:/mlflow
+    ports:
+      - "8080:8080"
+    command: >
+      bash -c "pip install mlflow &&
+      mlflow server
+      --host 0.0.0.0
+      --port 8080
+      --backend-store-uri sqlite:///mlflow.db
+      --default-artifact-root ./mlruns
+      --serve-artifacts"
+
+
+# ─────────────────────
+# Prometheus
+# ─────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - api
+
+
+# ─────────────────────
+# Grafana
+# ─────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+
+
+volumes:
+  grafana_data:

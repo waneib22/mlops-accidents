@@ -11,6 +11,7 @@ env/
 myenv/
 my_env/
 venv/
+.venv/
 build/
 develop-eggs/
 dist/
@@ -79,7 +80,7 @@ target/
 .ipynb_checkpoints/
 
 # exclude data from source control by default
-/data/
+#/data/ git n'ignore plus data, car on va utiliser dvc
 
 # Mac OS-specific storage files
 .DS_Store
@@ -90,20 +91,6 @@ target/
 
 # Mypy cache
 .mypy_cache/
-*.joblib
-
-# UV
-.venv/
-uv.lock
-.python-version
-
-# Modèle entraîné
-*.joblib
-
-# Docker
-.dockerignore
-
-# DVC local config (credentials)
+*.joblibmlruns/
 .dvc/config.local
 .dvc/cache/
-mlruns/

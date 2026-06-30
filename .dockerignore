@@ -1,0 +1,21 @@
+#n'ayant pas de place suffisante sur mon disque 
+#je crée un fichier .dockerignore pour installer que le necessaire 
+
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+mlruns/
+mlflow.db
+
+data/
+datasets/
+
+.git/
+
+*.csv
+*.pkl
+*.joblib
+
+.ipynb_checkpoints/

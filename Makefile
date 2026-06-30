@@ -1,5 +1,5 @@
 
-.PHONY: help install lint test api train docker-up docker-down clean
+.PHONY: help install lint test api mlflow train docker-up docker-down clean data-pull model-pull pull-all push-data push-model
 
 PYTHON   := python
 UVICORN  := python -m uvicorn
@@ -11,9 +11,14 @@ help:
 	@echo "  ======================================="
 	@echo "  make install     Install dependencies (uv)"
 	@echo "  make lint        Run flake8 linter"
-	@echo "  make test        Run test suite with coverage"
+	@echo "  make mlflow      Start MLFlow tracking server ui"
+	@echo "  make dvc-repro   Run full DVC pipeline (import data + preprocess + train + evaluate if needed)"
+	@echo "  make pull-all    Pull all DVC-tracked data and models (manual execution)"
+	@echo "  make train       Train model(manual execution)"
+	@echo "  make evaluate    Evaluate model (manual execution)"
+	@echo "  make push-all    Push data and/or models change to DVC remote (dagshub choose by default)"
+	@echo "  make pip-status  Show the status pipeline , changed or not "
 	@echo "  make api         Start API"
-	@echo "  make train       Train model"
 	@echo "  make predict     Predictions du model (lancer make api puis faire la commande dans nouveau terminal)"
 	@echo "  make docker-up   Start docker stack"
 	@echo "  make docker-down Stop docker stack"
@@ -23,22 +28,48 @@ help:
 install:
 	uv sync
 
-lint:
-	flake8 $(SRC_DIRS) --count --select=E9,F63,F7,F82 --show-source --statistics
-	flake8 $(SRC_DIRS) --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-test:
-	PYTHONPATH=. coverage run -m pytest tests/ -v
-	coverage report --min-coverage=60
-	coverage html
+lint:    #Qualité du code
+	flake8 src/
 
 api:
-	PYTHONPATH=. $(UVICORN) api.main_api:app --reload --host 0.0.0.0 --port 8000
+	$(UVICORN) api.main_api:app --reload --host 0.0.0.0 --port 8000
 
+mlflow:
+	mlflow server \
+	--host 127.0.0.1 \
+	--port 8080 \
+	--backend-store-uri sqlite:///mlflow.db \
+	--default-artifact-root ./mlruns \
+	--serve-artifacts
 
-train:
+dvc-repro:   # Recupere la totalité de la pipeline DVC via dvc.yaml
+	dvc repro
+
+pull-all: # DVC : récupération des données et du modèle
+	dvc pull  
+	#dvc pull -r dagshub
+
+push-all: # Envoie sur DVC et Git si nvx changements
+	git add -A #(ajout fichiers modifiés , nouveaux , supprimés)
+	git commit -m "Sync MLOps pipeline" || true
+
+	# push code GitHub
+	git push origin $$(git branch --show-current)
+
+	# push code DagsHub
+	git push dagshub $$(git branch --show-current)
+
+	# push data DVC (vers DagsHub remote configuré)
+	dvc push
+
+pip-status:
+	dvc status
+
+train: data-pull #(train: data-pull) — ça garantit qu'on a toujours les données à jour avant d'entraîner)
 	PYTHONPATH=. $(PYTHON) src/models/train_model.py
 
+evaluate:
+	PYTHONPATH=. $(PYTHON) src/models/evaluate_model.py
 
 health:
 	@curl -s http://localhost:8000/health | python -m json.tool
@@ -49,8 +80,8 @@ predict:
 		-H "Content-Type: application/json" \
 		-d @src/models/test_features.json \
 		| python -m json.tool
-
-docker-up:
+	
+docker-up: pull-all #pour être sur que l'on a bien recuperer les données et le modèle 
 	docker compose up --build
 
 docker-down:
@@ -61,3 +92,4 @@ clean:
 	rmdir /s /q __pycache__ 2>NUL || true
 	rmdir /s /q .pytest_cache 2>NUL || true
 	rmdir /s /q htmlcov 2>NUL || true
+	

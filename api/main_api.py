@@ -7,12 +7,15 @@ from sklearn.metrics import (
     accuracy_score, precision_score, recall_score,
     f1_score, classification_report
 )
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(
     title="Accidents MLOps - API principale",
     description="Regroupe les endpoints de test, prédiction et métriques",
     version="1.0"
 )
+
+Instrumentator().instrument(app).expose(app)
 
 # ─────────────────────────────────────────
 # Chargement modèle et données (une seule fois au démarrage)
@@ -66,7 +69,7 @@ class InputData(BaseModel):
 # ─────────────────────────────────────────
 @app.get("/", tags=["Test"])
 def home():
-    return {"message": "API principale active"}
+    return {"message": "API active"}
 
 
 # ─────────────────────────────────────────
@@ -104,7 +107,7 @@ def report():
 # ─────────────────────────────────────────
 @app.get("/health", tags=["Test"])
 def health():
-    return {"status": "ok"}
+    return {"status": "je suis une API qui fonctionne au top de sa forme 😏"}
 
 
 # Lancer : uvicorn api.main_api:app --reload
