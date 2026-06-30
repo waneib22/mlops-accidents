@@ -105,6 +105,3 @@ uv.lock
 
 # DVC local config (credentials)
 .dvc/config.local
-
-.dvc/config.local
-.env
