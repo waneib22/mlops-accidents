@@ -89,8 +89,20 @@ target/
 *.swp
 *.swo
 
-# Mypy cache
-.mypy_cache/
-*.joblibmlruns/
-.dvc/config.local
-.dvc/cache/
+# UV
+.venv/
+uv.lock
+.python-version
+
+# Bloquer les fichiers de modèles entrainés qui sont lourds
+*.joblib
+*.pkl
+
+# Docker
+.dockerignore
+
+# MLflow
+mlruns/
+
+# Bloquer la base de données MLflow locale si elle est créée par erreur
+mlflow.db
