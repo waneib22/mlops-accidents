@@ -16,7 +16,7 @@ help:
 	@echo "  make pull-all    Pull all DVC-tracked data and models (manual execution)"
 	@echo "  make train       Train model(manual execution)"
 	@echo "  make evaluate    Evaluate model (manual execution)"
-	@echo "  make push-all    Push data and/or models change to DVC remote (dagshub choose by default)"
+	@echo "  make push-all	  Push Git changes to GitHub/DagsHub and DVC data to DagsHub (dagshub choose by default)"
 	@echo "  make pip-status  Show the status pipeline , changed or not "
 	@echo "  make api         Start API"
 	@echo "  make predict     Predictions du model (lancer make api puis faire la commande dans nouveau terminal)"
