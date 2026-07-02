@@ -13,7 +13,8 @@ def train():
 
     #Tracking :
     import mlflow
-    mlflow.set_tracking_uri("http://localhost:8080")
+    #mlflow.set_tracking_uri("http://localhost:8080") url local
+    mlflow.set_tracking_uri("http://mlflow:8080")  # via reseau docker
 
     # Set experiment 
     mlflow.set_experiment("Prediction_Accidents")

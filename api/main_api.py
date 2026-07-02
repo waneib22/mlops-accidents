@@ -7,7 +7,9 @@ from sklearn.metrics import (
     accuracy_score, precision_score, recall_score,
     f1_score, classification_report
 )
-from prometheus_fastapi_instrumentator import Instrumentator
+import mlflow
+import mlflow.pyfunc
+#from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(
     title="Accidents MLOps - API principale",
@@ -15,17 +17,30 @@ app = FastAPI(
     version="1.0"
 )
 
-Instrumentator().instrument(app).expose(app)
+#Instrumentator().instrument(app).expose(app)
 
 # ─────────────────────────────────────────
 # Chargement modèle et données (une seule fois au démarrage)
 # ─────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
-MODEL_PATH  = BASE_DIR / "src" / "models" / "trained_model.joblib"
+
+# MODEL_PATH  = BASE_DIR / "src" / "models" / "trained_model.joblib"
+#model  = joblib.load(MODEL_PATH)
+
+#je charge le meilleur modele de mlflow model registry:
+#mlflow.set_tracking_uri("http://localhost:8080") #api lancé avec make api hors docker
+mlflow.set_tracking_uri("http://mlflow:8080")  #API lancée dans Docker Compose 
+
+
+model = mlflow.pyfunc.load_model(
+    "models:/Modele Random Forest /1"  #version 1
+)
+
+
 X_TEST_PATH = BASE_DIR / "data" / "preprocessed" / "X_test.csv"
 Y_TEST_PATH = BASE_DIR / "data" / "preprocessed" / "y_test.csv"
 
-model  = joblib.load(MODEL_PATH)
+
 X_test = pd.read_csv(X_TEST_PATH)
 y_test = pd.read_csv(Y_TEST_PATH).squeeze()
 
@@ -80,6 +95,8 @@ def predict(data: InputData):
     X = pd.DataFrame([data.model_dump()])
     pred = model.predict(X)
     return {"prediction": int(pred[0])}
+
+    #rajouter load model mlflow pour quil recupere le modele enregistré model registry dans mlflow
 
 
 # ─────────────────────────────────────────

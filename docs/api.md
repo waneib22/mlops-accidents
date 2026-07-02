@@ -283,5 +283,5 @@ curl -X POST http://localhost:8000/predict \
   }' | python3 -m json.tool
 
 # Ré-entraînement
-curl -X POST http://localhost:8000/retrain | python3 -m json.tool
+#curl -X POST http://localhost:8000/retrain | python3 -m json.tool
 ```
