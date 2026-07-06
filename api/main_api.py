@@ -42,10 +42,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 mlflow.set_tracking_uri("http://localhost:8080") #api lancé avec make api hors docker
 #mlflow.set_tracking_uri("http://mlflow:8080")  #API lancée dans Docker Compose 
 
-
-#si version modele specifique : model = mlflow.pyfunc.load_model("models:/Modele Random Forest /1")  #version 1
 #Utiliser la dernière version enregistrée:
 model = mlflow.pyfunc.load_model("models:/Modele Random Forest/latest") 
+#si version modele specifique : model = mlflow.pyfunc.load_model("models:/Modele Random Forest /1")  #version 1
 
 
 X_TEST_PATH = BASE_DIR / "data" / "preprocessed" / "X_test.csv"
