@@ -1,14 +1,24 @@
 # Référence API — Accidents Routiers
 
-Base URL : `http://localhost:8000`  
-Documentation interactive Swagger : `http://localhost:8000/docs`  
+Base URL : `http://localhost:8000`
+Documentation interactive Swagger : `http://localhost:8000/docs`
 Schéma OpenAPI JSON : `http://localhost:8000/openapi.json`
 
 ---
 
 ## Authentification
 
-Aucune authentification requise (projet Phase 1).
+Aucune authentification requise .
+
+---
+
+## Chargement du modèle
+
+Au démarrage, l'API charge la **dernière version** du modèle **Random Forest** depuis le **MLflow Model Registry** (`models:/Modele Random Forest/latest`) et charge en mémoire les
+jeux de test `X_test.csv` / `y_test.csv` (utilisés par `/metrics` et `/report`).
+
+> Le modèle est également rechargé automatiquement (dernière version) après un ré-entraînement déclenché via `/retrain`.
+
 
 ---
 
@@ -16,102 +26,41 @@ Aucune authentification requise (projet Phase 1).
 
 ### `GET /`
 
-Redirige automatiquement vers `/docs` (code HTTP 307/308).
+Redirige automatiquement vers la documentation interactive Swagger (`/docs`).
 
 ---
 
 ### `GET /health`
 
-Retourne le statut opérationnel de l'API et du modèle.
-
-**Réponse 200**
+Endpoint de bonne pratique pour vérifier la disponibilité du service.
 
 ```json
 {
-  "status": "ok",
+  "api": "ok",
   "model_loaded": true,
-  "model_type": "RandomForestClassifier",
-  "n_features": 28,
-  "uptime_seconds": 142.35,
-  "api_version": "1.0.0"
+  "mlflow_tracking": "http://localhost:8080",
+  "service": "accidents-api",
+  "version": "1.0.0",
+  "message": "je suis une API qui fonctionne au top de sa forme 😏"
 }
 ```
 
 | Champ | Type | Description |
 |-------|------|-------------|
-| `status` | `string` | `"ok"` si le modèle est chargé, `"degraded"` sinon |
-| `model_loaded` | `boolean` | `true` si le modèle est disponible |
-| `model_type` | `string \| null` | Nom de la classe du modèle sklearn |
-| `n_features` | `integer` | Nombre de features attendues (28) |
-| `uptime_seconds` | `float` | Temps écoulé depuis le démarrage de l'API |
-| `api_version` | `string` | Version sémantique de l'API |
+| `api` | `string` | Statut de l'API (`"ok"`) |
+| `model_loaded` | `boolean` | `true` si le modèle est chargé en mémoire |
+| `mlflow_tracking` | `string` | URI du serveur MLflow configuré |
+| `service` | `string` | Nom du service |
+| `version` | `string` | Version de l'API |
+| `message` | `string` | Petit Message  |
 
-> Le code HTTP est toujours `200` — surveiller le champ `status` pour détecter le mode dégradé.
-
----
-
-### `GET /stats`
-
-Retourne les compteurs de prédictions depuis le démarrage.
-
-**Réponse 200**
-
-```json
-{
-  "total_predictions": 42,
-  "predictions_by_label": {
-    "prioritaire": 31,
-    "non_prioritaire": 11
-  },
-  "uptime_seconds": 310.88
-}
-```
-
-| Champ | Type | Description |
-|-------|------|-------------|
-| `total_predictions` | `integer` | Nombre total de requêtes `/predict` traitées |
-| `predictions_by_label.prioritaire` | `integer` | Prédictions de classe 1 |
-| `predictions_by_label.non_prioritaire` | `integer` | Prédictions de classe 0 |
-| `uptime_seconds` | `float` | Temps écoulé depuis le démarrage |
-
-> Les compteurs sont **en mémoire** et se réinitialisent au redémarrage du service.
-
----
-
-### `GET /model/info`
-
-Retourne les métadonnées et hyperparamètres du modèle chargé.
-
-**Réponse 200**
-
-```json
-{
-  "type": "RandomForestClassifier",
-  "n_features": 28,
-  "features": ["place", "catu", "sexe", "secu1", "year_acc", "victim_age",
-               "catv", "obsm", "motor", "catr", "circ", "surf", "situ", "vma",
-               "jour", "mois", "lum", "dep", "com", "agg_", "int", "atm", "col",
-               "lat", "long", "hour", "nb_victim", "nb_vehicules"],
-  "params": {
-    "n_estimators": 100,
-    "random_state": 42,
-    "n_jobs": -1,
-    "max_depth": null
-  }
-}
-```
-
-**Réponse 503** — modèle non chargé
-
-```json
-{"detail": "Modèle non chargé."}
-```
+> `model_loaded` vaut `true` tant que la variable `model` n'est pas `None` 
 
 ---
 
 ### `POST /predict`
 
-Prédit la gravité d'un accident de la route.
+Prédit la gravité d'un accident de la route à partir des features fournies.
 
 **Corps de la requête** (`application/json`)
 
@@ -150,62 +99,51 @@ Prédit la gravité d'un accident de la route.
 
 #### Description des champs
 
-| Champ | Type | Source BAAC | Description |
-|-------|------|-------------|-------------|
-| `place` | float | usagers | Place occupée dans le véhicule |
-| `catu` | float | usagers | Catégorie d'usager (1=conducteur, 2=passager, 3=piéton) |
-| `sexe` | float | usagers | Sexe (1=masculin, 2=féminin) |
-| `secu1` | float | usagers | Équipement de sécurité 1 |
-| `year_acc` | float | caractéristiques | Année de l'accident |
-| `victim_age` | float | calculé | Âge de la victime (année acc − année naissance) |
-| `catv` | float | véhicules | Catégorie de véhicule |
-| `obsm` | float | véhicules | Obstacle mobile heurté |
-| `motor` | float | véhicules | Type de motorisation |
-| `catr` | float | lieux | Catégorie de route |
-| `circ` | float | lieux | Régime de circulation |
-| `surf` | float | lieux | État de la surface |
-| `situ` | float | lieux | Situation de l'accident |
-| `vma` | float | lieux | Vitesse maximale autorisée |
-| `jour` | float | caractéristiques | Jour de la semaine |
-| `mois` | float | caractéristiques | Mois de l'accident |
-| `lum` | float | caractéristiques | Conditions d'éclairage |
-| `dep` | float | caractéristiques | Code département |
-| `com` | float | caractéristiques | Code commune INSEE |
-| `agg_` | float | caractéristiques | Localisation (1=hors agglomération, 2=en agglomération) |
-| `int` | float | caractéristiques | Type d'intersection |
-| `atm` | float | caractéristiques | Conditions atmosphériques |
-| `col` | float | caractéristiques | Type de collision |
-| `lat` | float | caractéristiques | Latitude (WGS84) |
-| `long` | float | caractéristiques | Longitude (WGS84) |
-| `hour` | float | calculé | Heure de l'accident (extrait de `hrmn`) |
-| `nb_victim` | float | calculé | Nombre de victimes impliquées |
-| `nb_vehicules` | float | calculé | Nombre de véhicules impliqués |
+| Champ | Type | Description |
+|-------|------|-------------|
+| `place` | int | Place occupée dans le véhicule |
+| `catu` | int | Catégorie d'usager (1=conducteur, 2=passager, 3=piéton) |
+| `sexe` | int | Sexe (1=masculin, 2=féminin) |
+| `secu1` | float | Équipement de sécurité 1 |
+| `year_acc` | int | Année de l'accident |
+| `victim_age` | int | Âge de la victime |
+| `catv` | int | Catégorie de véhicule |
+| `obsm` | int | Obstacle mobile heurté |
+| `motor` | int | Type de motorisation |
+| `catr` | int | Catégorie de route |
+| `circ` | int | Régime de circulation |
+| `surf` | int | État de la surface |
+| `situ` | int | Situation de l'accident |
+| `vma` | int | Vitesse maximale autorisée |
+| `jour` | int | Jour de la semaine |
+| `mois` | int | Mois de l'accident |
+| `lum` | int | Conditions d'éclairage |
+| `dep` | int | Code département |
+| `com` | int | Code commune INSEE |
+| `agg_` | int | Localisation (1=hors agglomération, 2=en agglomération) |
+| `int` | int | Type d'intersection |
+| `atm` | int | Conditions atmosphériques |
+| `col` | int | Type de collision |
+| `lat` | float | Latitude (WGS84) |
+| `long` | float | Longitude (WGS84) |
+| `hour` | int | Heure de l'accident |
+| `nb_victim` | int | Nombre de victimes impliquées |
+| `nb_vehicules` | int | Nombre de véhicules impliqués |
+
+Tous les champs sont **requis** (aucune valeur par défaut définie dans le schéma Pydantic).
 
 **Réponse 200**
 
 ```json
 {
-  "prediction": 1,
-  "label": "prioritaire",
-  "probability": 0.8423,
-  "confidence": "high"
+  "prediction": 0
 }
 ```
 
-| Champ | Type | Valeurs possibles | Description |
-|-------|------|-------------------|-------------|
-| `prediction` | `integer` | `0`, `1` | Classe prédite |
-| `label` | `string` | `"prioritaire"`, `"non-prioritaire"` | Label lisible |
-| `probability` | `float` | `[0.0, 1.0]` | Probabilité de la classe prédite |
-| `confidence` | `string` | `"high"`, `"medium"`, `"low"` | Niveau de confiance |
+| Champ | Type | Description |
+|-------|------|-------------|
+| `prediction` | `integer` | Classe prédite par le modèle |
 
-Règles de confiance :
-
-| `probability` | `confidence` |
-|---------------|-------------|
-| ≥ 0.80 | `high` |
-| ≥ 0.60 | `medium` |
-| < 0.60 | `low` |
 
 **Réponse 422** — champ manquant ou invalide
 
@@ -221,33 +159,84 @@ Règles de confiance :
 }
 ```
 
-**Réponse 503** — modèle non chargé
-
-```json
-{"detail": "Modèle non disponible. Lancez d'abord l'entraînement."}
-```
-
 ---
 
 ### `POST /retrain`
+ 
+Déclenche un ré-entraînement du modèle **en arrière-plan** (`BackgroundTasks`). La requête
+répond immédiatement (202) sans attendre la fin de l'entraînement.
+ 
+**Comportement**
+1. L'entraînement (`train()`) s'exécute en tâche de fond et enregistre le nouveau modèle dans le MLflow Model Registry.
 
-Déclenche un ré-entraînement du modèle en arrière-plan.
+2. Une fois terminé, l'API recharge automatiquement la **dernière version** du modèle (`models:/Modele Random Forest/latest`) pour `/predict`, `/metrics` et `/report`.
 
-**Pas de corps requis.**
+3. En cas d'erreur pendant l'entraînement, celle-ci est loggée côté serveur ([retrain] Erreur : ...`).
+
 
 **Réponse 202**
-
+ 
 ```json
 {
   "status": "accepted",
-  "message": "Retraining started in background."
+  "message": "Retraining lancé."
+}
+```
+ 
+---
+
+### `GET /metrics`
+
+Calcule les métriques de performance du modèle sur le jeu de test (`X_test.csv` / `y_test.csv` chargé au démarrage).
+
+**Réponse 200**
+
+```json
+{
+  "accuracy": 0.7442413162705668,
+  "precision": 0.7387847064328217,
+  "recall": 0.7442413162705668,
+  "f1_score": 0.7254516325533181
 }
 ```
 
-Le ré-entraînement exécute `src/models/train_model.py` en sous-processus.  
-Le modèle est rechargé automatiquement en mémoire à la fin du script.
+| Champ | Type | Description |
+|-------|------|-------------|
+| `accuracy` | `float` | Exactitude globale |
+| `precision` | `float` | Précision moyenne pondérée (`average="weighted"`) |
+| `recall` | `float` | Rappel moyen pondéré (`average="weighted"`) |
+| `f1_score` | `float` | F1-score moyen pondéré (`average="weighted"`) |
 
-> Prérequis : les fichiers `data/processed/X_train.csv`, `y_train.csv`, `X_test.csv`, `y_test.csv` doivent exister.
+> Ces métriques sont recalculées à **chaque appel** : le modèle refait une prédiction complète sur tout `X_test` à chaque requête.
+
+---
+
+### `GET /report`
+
+Retourne le rapport de classification complet (`sklearn.metrics.classification_report`,
+au format dictionnaire) sur le jeu de test.
+
+**Réponse 200**
+
+```json
+{
+  "0": {
+    "precision": 0.7529002320185615,
+    "recall": 0.9066778429728974,
+    "f1-score": 0.8226644695145139,
+    "support": 10737
+  },
+  "1": {
+    "precision": 0.7120689655172414,
+    "recall": 0.43680592279217345,
+    "f1-score": 0.5414618157980989,
+    "support": 5673
+  },
+  "accuracy": 0.7442413162705668,
+  "macro avg": {"precision": 0.7324845987679014,"recall": 0.6717418828825354,"f1-score": 0.6820631426563064,"support": 16410},
+  "weighted avg": {"precision": 0.7387847064328217,"recall": 0.7442413162705668,"f1-score": 0.7254516325533181,"support": 16410}
+}
+```
 
 ---
 
@@ -256,18 +245,16 @@ Le modèle est rechargé automatiquement en mémoire à la fin du script.
 | Code | Signification |
 |------|---------------|
 | 200 | Succès |
-| 202 | Requête acceptée (traitement asynchrone) |
-| 307/308 | Redirection |
-| 422 | Erreur de validation Pydantic |
-| 503 | Service indisponible (modèle non chargé) |
+| 202 | Requête acceptée, traitement en arrière-plan (`/retrain`) |
+| 422 | Erreur de validation  |
 
 ---
 
 ## Exemple complet avec curl
 
 ```bash
-# Santé
-curl http://localhost:8000/health | python3 -m json.tool
+# Test de disponibilité
+curl http://localhost:8000/health 
 
 # Prédiction
 curl -X POST http://localhost:8000/predict \
@@ -280,8 +267,27 @@ curl -X POST http://localhost:8000/predict \
     "com": 77317, "agg_": 2, "int": 1, "atm": 0, "col": 6,
     "lat": 48.60, "long": 2.89, "hour": 17,
     "nb_victim": 2, "nb_vehicules": 1
-  }' | python3 -m json.tool
+  }' 
 
-# Ré-entraînement
-curl -X POST http://localhost:8000/retrain | python3 -m json.tool
+# Ré-entraînement 
+curl -X POST http://localhost:8000/retrain 
+
+# Métriques du modèle
+curl http://localhost:8000/metrics 
+
+# Rapport de classification complet
+curl http://localhost:8000/report 
 ```
+
+---
+
+## Lancement
+
+```bash
+uvicorn api.main_api:app --reload
+```
+
+Nécessite qu'un serveur MLflow soit accessible à l'URI configurée dans `main_api.py`
+(`http://mlflow:8080` en Docker Compose, `http://localhost:8080` en local hors Docker,
+actif actuellement) et qu'une version du modèle `Modele Random Forest` soit bien
+enregistrée dans le Model Registry.

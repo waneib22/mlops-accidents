@@ -23,8 +23,8 @@ def client_with_model():
     mock_model.predict_proba.return_value = np.array([[0.2, 0.8]])
     mock_model.get_params.return_value = {"n_estimators": 100, "random_state": 42}
 
-    import src.api.metrics as state
-    from src.api.main import app
+    import api.metrics as state
+    from api.main import app
     state.ml_model["classifier"] = mock_model
     with TestClient(app) as c:
         state.ml_model["classifier"] = mock_model
@@ -33,8 +33,8 @@ def client_with_model():
 
 @pytest.fixture
 def client_without_model():
-    import src.api.metrics as state
-    from src.api.main import app
+    import api.metrics as state
+    from api.main import app
     state.ml_model["classifier"] = None
     with TestClient(app) as c:
         state.ml_model["classifier"] = None
@@ -82,7 +82,7 @@ class TestStatsEndpoint:
         assert "non_prioritaire" in data["predictions_by_label"]
 
     def test_stats_increments_on_predict(self, client_with_model):
-        import src.api.metrics as state
+        import api.metrics as state
         before = state.stats["total"]
         client_with_model.post("/predict", json=SAMPLE_FEATURES)
         assert state.stats["total"] == before + 1

@@ -37,9 +37,11 @@ Un Random Forest est un ensemble de **N arbres de décision** entraînés sur de
 | `n_estimators` | 100 | Bon compromis vitesse/variance |
 | `random_state` | 42 | Reproductibilité |
 | `n_jobs` | -1 | Parallélisation sur tous les cœurs CPU |
-| `max_depth` | `None` | Arbres développés jusqu'aux feuilles pures |
+| `max_depth` | 5 | Limite la profondeur des arbres pour alléger le modèle |
 | `min_samples_split` | 2 | Valeur par défaut sklearn |
 | `min_samples_leaf` | 1 | Valeur par défaut sklearn |
+
+> Ces hyperparamètres, ainsi que le nom du modèle, sont trackés automatiquement dans MLflow via `mlflow.log_params(...)` à chaque run.
 
 ---
 
@@ -55,13 +57,37 @@ Voir [docs/data_pipeline.md](data_pipeline.md) pour le détail des transformatio
 
 ---
 
+## Tracking MLflow
+
+L'entraînement est entièrement tracké via **MLflow Tracking** + **Model Registry** :
+
+| Élément | Valeur |
+|---------|--------|
+| Tracking URI | `http://localhost:8080` (local) / `http://mlflow:8080` (Docker Compose) |
+| Expérience | `Prediction_Accidents` |
+| Nom du run | `RandomForest_Baseline_Mélanie` |
+| Modèle enregistré | `Modele Random Forest` (Model Registry) |
+
+À chaque appel de `train()` :
+1. Les hyperparamètres (`n_estimators`, `model`, `n_jobs`) sont loggés via `mlflow.log_params`.
+2. Les 4 métriques (`accuracy`, `precision`, `recall`, `f1_score`) sont loggées via `mlflow.log_metric`.
+3. Le modèle est loggé et **enregistré comme nouvelle version** dans le Model Registry sous le nom `Modele Random Forest` (`mlflow.sklearn.log_model(..., registered_model_name=...)`).
+
+> L'API (`main_api.py`) charge toujours la **dernière version enregistrée** (`models:/Modele Random Forest/latest`) : un nouvel entraînement crée donc automatiquement une nouvelle version disponible pour l'API, sans rien à faire de plus côté Registry.
+
+---
+
 ## Performance
 
 | Métrique | Valeur (test set) |
 |----------|------------------|
-| Accuracy | ~77% |
+| Accuracy | ~74% |
+| Precision | ~73% |
+| Recall | ~74% |
+| F1_score | ~72% |
 
-> En Phase 1, seule l'accuracy est suivie. Des métriques supplémentaires (F1, ROC-AUC, matrice de confusion) seront intégrées en Phase 2 (MLflow).
+> En Phase 1, toutes les métriques sont suivies, on prends le dernjier modèle mlflow sauvegardé. 
+> Dans la phase 2 , on selectionnera seulement la F1_score , et on choisira le modèle qui a le meilleur F1_score
 
 ---
 
@@ -110,6 +136,10 @@ src/models/trained_model.joblib
 
 Le fichier est ignoré par git (`.gitignore`) — chaque déploiement nécessite un entraînement ou le montage du volume Docker.
 
+> Ayant Dagshub, il n'est pas obligatoire de sauvegarder notre modèle joblib , mias par choix , je prefere garder une trace en local
+
+
+
 ### Compatibilité sklearn
 
 Le modèle doit être chargé avec la **même version de scikit-learn** que celle utilisée lors de l'entraînement. Pour éviter tout problème :
@@ -141,9 +171,9 @@ Logs attendus :
 
 ---
 
-## Ré-entraînement via l'API ??? PAS D'API RETRAIN
+## Ré-entraînement via l'API 
 
-L'endpoint `POST /retrain` déclenche un ré-entraînement en arrière-plan (thread séparé) :
+L'endpoint `POST /retrain` déclenche un ré-entraînement en arrière-plan :
 
 ```bash
 curl -X POST http://localhost:8000/retrain

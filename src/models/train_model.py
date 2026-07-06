@@ -10,10 +10,10 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 print(joblib.__version__)
 
 def train():
-
     #Tracking :
     import mlflow
-    mlflow.set_tracking_uri("http://localhost:8080")
+    mlflow.set_tracking_uri("http://localhost:8080") #url local
+    #mlflow.set_tracking_uri("http://mlflow:8080")  # via reseau docker
 
     # Set experiment 
     mlflow.set_experiment("Prediction_Accidents")
@@ -40,7 +40,8 @@ def train():
         rf_classifier = ensemble.RandomForestClassifier(
             n_estimators=n_estimators,
             max_depth=5,       # Limite la profondeur pour alléger le modèle (car pas assez de place sur mon disque dur)
-            n_jobs=-1
+            n_jobs=-1,
+            random_state=42
         )
 
         rf_classifier.fit(X_train, y_train)
@@ -57,14 +58,16 @@ def train():
         for name, value in metrics.items():
             mlflow.log_metric(name, value)
 
-        # Save model
-        model_filename = "./src/models/trained_model.joblib"
-        joblib.dump(rf_classifier, model_filename)
+        # Save model , pas obligatoire car on sauvegarde mtn sur mlflow
+        joblib.dump(rf_classifier, "./src/models/trained_model.joblib")
 
-        # Log model MLflow 
-        mlflow.sklearn.log_model(rf_classifier, "model")
+        # Log model MLflow + Model registry
+        mlflow.sklearn.log_model(
+            sk_model=rf_classifier,
+            name="model RF",
+            registered_model_name="Modele Random Forest") 
 
-        print("Model trained and logged with MLflow")
+        print("Model trained, logged and registered with MLflow")
 
     return rf_classifier
 
