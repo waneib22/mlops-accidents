@@ -49,12 +49,12 @@ pull-all: # DVC : récupération des données et du modèle
 	dvc pull  
 	#dvc pull -r dagshub
 
-push-all: # Envoie sur DVC et Git si nvx changements
+push-all: # Envoie sur DVC et Git si nvx changements => juste modifier intituler en fonction des modifs
 	#Ajout fichiers modifiés , nouveaux , supprimés
 	git add -A 
 
 	# Commit seulement si changements
-	git diff --cached --quiet || git commit -m "MAJ Derniere version modele mlflow - api"
+	git diff --cached --quiet || git commit -m "Sync MLOps pipeline" 
 
 	# push code GitHub
 	git push origin $$(git branch --show-current)
