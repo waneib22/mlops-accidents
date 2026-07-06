@@ -102,6 +102,7 @@ uv.lock
 .dockerignore
 
 # MLflow
+mlflow/
 mlruns/
 
 # Bloquer la base de données MLflow locale si elle est créée par erreur

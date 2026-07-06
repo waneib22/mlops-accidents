@@ -49,9 +49,12 @@ pull-all: # DVC : récupération des données et du modèle
 	dvc pull  
 	#dvc pull -r dagshub
 
-push-all: # Envoie sur DVC et Git si nvx changements
-	git add -A #(ajout fichiers modifiés , nouveaux , supprimés)
-	git commit -m "Sync MLOps pipeline" || true
+push-all: # Envoie sur DVC et Git si nvx changements => juste modifier intituler en fonction des modifs
+	#Ajout fichiers modifiés , nouveaux , supprimés
+	git add -A 
+
+	# Commit seulement si changements
+	git diff --cached --quiet || git commit -m "Sync MLOps pipeline" 
 
 	# push code GitHub
 	git push origin $$(git branch --show-current)
@@ -81,7 +84,7 @@ predict:
 		-d @src/models/test_features.json \
 		| python -m json.tool
 	
-docker-up: pull-all #pour être sur que l'on a bien recuperer les données et le modèle 
+docker-up:#pull-all pour être sur que l'on a bien recuperer les données et le modèle 
 	docker compose up --build
 
 docker-down:

@@ -21,21 +21,23 @@ services:
 # MLflow tracking server
 # ─────────────────────
   mlflow:
-    image: python:3.10-slim
+    image: ghcr.io/mlflow/mlflow
     container_name: mlflow_server
     working_dir: /mlflow
     volumes:
       - ./mlflow:/mlflow
     ports:
       - "8080:8080"
-    command: >
-      bash -c "pip install mlflow &&
-      mlflow server
-      --host 0.0.0.0
-      --port 8080
-      --backend-store-uri sqlite:///mlflow.db
-      --default-artifact-root ./mlruns
-      --serve-artifacts"
+    command: 
+      - mlflow
+      - server
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --backend-store-uri sqlite:///mlflow.db
+      - --default-artifact-root /mlflow/mlruns
+      - --serve-artifacts
 
 
 # ─────────────────────
