@@ -54,7 +54,7 @@ push-all: # Envoie sur DVC et Git si nvx changements
 	git add -A 
 
 	# Commit seulement si changements
-	git diff --cached --quiet || git commit -m "Sync MLOps pipeline"
+	git diff --cached --quiet || git commit -m "MAJ Derniere version modele mlflow - api"
 
 	# push code GitHub
 	git push origin $$(git branch --show-current)

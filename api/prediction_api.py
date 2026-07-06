@@ -82,7 +82,6 @@ def predict(data: InputData):
 #Rappel :
 #prediction La prédiction retourne la gravité de l'accident.La prédiction retourne la gravité de l'accident. Dans le dataset accidents routiers français, la variable cible est grav :
 
-# 1 : indemne 
-# 2 : tué
-# 3 : blessé hospitalisé
-# 4 : blessé léger
+#| `1` | prioritaire | Victime hospitalisée ou décédée | 
+#| `0` | non-prioritaire | Victime indemne ou légèrement blessée |
+
