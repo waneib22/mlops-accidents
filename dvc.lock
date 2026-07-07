@@ -10,28 +10,28 @@ stages:
       nfiles: 4
     - path: src/models/train_model.py
       hash: md5
-      md5: 3d39ec173b1ff9b23c07c460a2191e2a
-      size: 2445
+      md5: c1bf9ff9e6ee89080ca0715b90746c1e
+      size: 2919
     outs:
     - path: src/models/trained_model.joblib
       hash: md5
-      md5: de9f7b322f306e8bc6b728878edb6616
-      size: 272761
+      md5: 87ec4eccc2f8863d06ee8317f6dcb6ab
+      size: 272777
   evaluate:
     cmd: python src/models/evaluate_model.py
     deps:
     - path: src/models/evaluate_model.py
       hash: md5
-      md5: 4262bed06dbb7a63adef7bbbeaed71d6
-      size: 3050
+      md5: 0fd12d12aa98ba595aec4d6e13c503f6
+      size: 3059
     - path: src/models/trained_model.joblib
       hash: md5
-      md5: de9f7b322f306e8bc6b728878edb6616
-      size: 272761
+      md5: 87ec4eccc2f8863d06ee8317f6dcb6ab
+      size: 272777
     outs:
     - path: metrics/evaluation_metrics.json
       hash: md5
-      md5: 95e5baa726675d94108684d8f997cf8f
+      md5: d4292847fa41db61f3849367f41a3a04
       size: 150
   import_data:
     cmd: python src/data/import_raw_data.py
