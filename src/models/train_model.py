@@ -4,16 +4,26 @@ import pandas as pd
 from sklearn import ensemble
 import joblib
 import numpy as np
-import mlflow
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+import os 
+import mlflow
+import dagshub 
 
 print(joblib.__version__)
 
 def train():
-    #Tracking :
-    import mlflow
-    mlflow.set_tracking_uri("http://localhost:8080") #url local
-    #mlflow.set_tracking_uri("http://mlflow:8080")  # via reseau docker
+    # --- Tracking ---
+    # Historique de configuration :
+    # v1 (Local) : mlflow.set_tracking_uri("http://localhost:8080")
+    # v2 (Docker) : mlflow.set_tracking_uri("http://mlflow:8080")
+    # v3 (Dagshub) : pour garder tous les runs , et les mm versions pour toute l'equipe avec SDK Dagshub
+ 
+    
+    # Cette ligne unique configure automatiquement MLflow pour pointer vers DagsHub et gère l'authentification (si deja connecté dans le terminal)
+    #si pas encore connecté sur dagshub : juste taper dans bash : dagshub login , et mettre ses identifiants
+    dagshub.init(repo_owner='Melanie94480', repo_name='mlops-melanie', mlflow=True)
+
+    # Pas besoin de set_tracking_uri, dagshub.init le fait.
 
     # Set experiment 
     mlflow.set_experiment("Prediction_Accidents")
@@ -29,7 +39,7 @@ def train():
     with mlflow.start_run(run_name="RandomForest_Baseline_Mélanie"):
 
         # Params à tracker
-        n_estimators = 100
+        n_estimators = 50
         mlflow.log_params({
                 "n_estimators": n_estimators,
                 "model": "RandomForest",
@@ -40,8 +50,7 @@ def train():
         rf_classifier = ensemble.RandomForestClassifier(
             n_estimators=n_estimators,
             max_depth=5,       # Limite la profondeur pour alléger le modèle (car pas assez de place sur mon disque dur)
-            n_jobs=-1,
-            random_state=42
+            n_jobs=-1
         )
 
         rf_classifier.fit(X_train, y_train)

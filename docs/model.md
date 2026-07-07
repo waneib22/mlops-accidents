@@ -146,6 +146,7 @@ Le modèle doit être chargé avec la **même version de scikit-learn** que cell
 
 - En local : `make train` dans l'environnement virtuel.
 - En Docker : ???
+- En Docker : ???
 
 ---
 
@@ -156,6 +157,7 @@ Le modèle doit être chargé avec la **même version de scikit-learn** que cell
 make train
 
 # Dans le conteneur Docker (recommandé pour la cohérence des versions)
+docker ???
 docker ???
 ```
 

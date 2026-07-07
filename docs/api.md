@@ -2,6 +2,8 @@
 
 Base URL : `http://localhost:8000`
 Documentation interactive Swagger : `http://localhost:8000/docs`
+Base URL : `http://localhost:8000`
+Documentation interactive Swagger : `http://localhost:8000/docs`
 Schéma OpenAPI JSON : `http://localhost:8000/openapi.json`
 
 ---
@@ -60,6 +62,7 @@ Endpoint de bonne pratique pour vérifier la disponibilité du service.
 
 ### `POST /predict`
 
+Prédit la gravité d'un accident de la route à partir des features fournies.
 Prédit la gravité d'un accident de la route à partir des features fournies.
 
 **Corps de la requête** (`application/json`)
@@ -131,6 +134,38 @@ Prédit la gravité d'un accident de la route à partir des features fournies.
 | `nb_vehicules` | int | Nombre de véhicules impliqués |
 
 Tous les champs sont **requis** (aucune valeur par défaut définie dans le schéma Pydantic).
+| Champ | Type | Description |
+|-------|------|-------------|
+| `place` | int | Place occupée dans le véhicule |
+| `catu` | int | Catégorie d'usager (1=conducteur, 2=passager, 3=piéton) |
+| `sexe` | int | Sexe (1=masculin, 2=féminin) |
+| `secu1` | float | Équipement de sécurité 1 |
+| `year_acc` | int | Année de l'accident |
+| `victim_age` | int | Âge de la victime |
+| `catv` | int | Catégorie de véhicule |
+| `obsm` | int | Obstacle mobile heurté |
+| `motor` | int | Type de motorisation |
+| `catr` | int | Catégorie de route |
+| `circ` | int | Régime de circulation |
+| `surf` | int | État de la surface |
+| `situ` | int | Situation de l'accident |
+| `vma` | int | Vitesse maximale autorisée |
+| `jour` | int | Jour de la semaine |
+| `mois` | int | Mois de l'accident |
+| `lum` | int | Conditions d'éclairage |
+| `dep` | int | Code département |
+| `com` | int | Code commune INSEE |
+| `agg_` | int | Localisation (1=hors agglomération, 2=en agglomération) |
+| `int` | int | Type d'intersection |
+| `atm` | int | Conditions atmosphériques |
+| `col` | int | Type de collision |
+| `lat` | float | Latitude (WGS84) |
+| `long` | float | Longitude (WGS84) |
+| `hour` | int | Heure de l'accident |
+| `nb_victim` | int | Nombre de victimes impliquées |
+| `nb_vehicules` | int | Nombre de véhicules impliqués |
+
+Tous les champs sont **requis** (aucune valeur par défaut définie dans le schéma Pydantic).
 
 **Réponse 200**
 
@@ -139,6 +174,10 @@ Tous les champs sont **requis** (aucune valeur par défaut définie dans le sch�
   "prediction": 0
 }
 ```
+
+| Champ | Type | Description |
+|-------|------|-------------|
+| `prediction` | `integer` | Classe prédite par le modèle |
 
 | Champ | Type | Description |
 |-------|------|-------------|
