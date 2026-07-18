@@ -10,7 +10,6 @@ services:
       dockerfile: Dockerfile
     deploy:
       replicas: 3
-    container_name: accidents_api
     ports:
       - "8000"
     volumes:
