@@ -39,8 +39,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 #model  = joblib.load(MODEL_PATH)
 
 #je charge le meilleur modele de mlflow model registry:
-mlflow.set_tracking_uri("http://localhost:8080") #api lancé avec make api hors docker
-#mlflow.set_tracking_uri("http://mlflow:8080")  #API lancée dans Docker Compose 
+#mlflow.set_tracking_uri("http://localhost:8080") #api lancé avec make api hors docker
+mlflow.set_tracking_uri("http://mlflow:8080")  #API lancée dans Docker Compose 
 
 #Utiliser la dernière version enregistrée:
 model = mlflow.pyfunc.load_model("models:/Modele Random Forest/latest") 
