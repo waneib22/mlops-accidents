@@ -45,7 +45,7 @@ jobs:
 
     - name: Lint with flake8
       run: |
-        flake8 src api tests \
+        uv run flake8 src api tests \
         --count \
         --select=E9,F63,F7,F82 \
         --show-source \
