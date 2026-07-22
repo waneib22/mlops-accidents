@@ -16,7 +16,7 @@ RUN uv pip install --system -r requirements.txt
 # Copier le reste du projet
 COPY . .
 
-# Éviter les fichiers inutiles dans l’image (optionnel mais propre)
+# Éviter les fichiers inutiles dans l’image 
 ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000

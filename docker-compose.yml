@@ -15,29 +15,37 @@ services:
       - ./data:/app/data
       - ./src:/app/src
       - ./api:/app/api
+    
+    environment:
+      - MLFLOW_TRACKING_USERNAME
+      - MLFLOW_TRACKING_PASSWORD
+
+# NOTE : le serveur MLflow local (image mlflow/mlflow) a été retiré.
+# Le tracking se fait désormais sur DagsHub (https://dagshub.com/Melanie94480/mlops-melanie.mlflow),
+# où le modèle est déjà enregistré. L'UI MLflow de la démo, c'est celle de DagsHub, pas un conteneur local.
 
 
 # ─────────────────────
-# MLflow tracking server
+# MLflow tracking server (désactivé — tracking sur DagsHub désormais)
 # ─────────────────────
-  mlflow:
-    image: ghcr.io/mlflow/mlflow
-    container_name: mlflow_server
-    working_dir: /mlflow
-    volumes:
-      - ./mlflow:/mlflow
-    ports:
-      - "8080:8080"
-    command: 
-      - mlflow
-      - server
-      - --host
-      - 0.0.0.0
-      - --port
-      - "8080"
-      - --backend-store-uri sqlite:///mlflow.db
-      - --default-artifact-root /mlflow/mlruns
-      - --serve-artifacts
+#  mlflow:
+#    image: mlflow/mlflow
+#    container_name: mlflow_server
+#    working_dir: /mlflow
+#    volumes:
+#      - ./mlflow:/mlflow
+#    ports:
+#      - "8080:8080"
+#    command:
+#      - mlflow
+#      - server
+#      - --host
+#      - 0.0.0.0
+#      - --port
+#      - "8080"
+#      - --backend-store-uri sqlite:///mlflow.db
+#      - --default-artifact-root /mlflow/mlruns
+#      - --serve-artifacts
 
 
 # ─────────────────────

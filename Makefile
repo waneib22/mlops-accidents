@@ -12,8 +12,8 @@ help:
 	@echo "  make install     Install dependencies (uv)"
 	@echo "  make lint        Run flake8 linter"
 	@echo "  make mlflow      Start MLFlow tracking server ui"
+	@echo "  make pull-all    Pull all DVC-tracked data and models (manual execution)" (A faire avant dvc-repro si pas de dossier data)
 	@echo "  make dvc-repro   Run full DVC pipeline (import data + preprocess + train + evaluate if needed)"
-	@echo "  make pull-all    Pull all DVC-tracked data and models (manual execution)"
 	@echo "  make train       Train model(manual execution)"
 	@echo "  make evaluate    Evaluate model (manual execution)"
 	@echo "  make push-all    Push data and/or models change to DVC remote (dagshub choose by default)"
@@ -23,6 +23,8 @@ help:
 	@echo "  make docker-up   Start docker stack"
 	@echo "  make docker-down Stop docker stack"
 	@echo "  make clean       Clean project"
+	@echo "  make airflow-up               "
+	@echo "  make tests       Tests Apis - data: Integration Continue"
 	@echo ""
 
 install:

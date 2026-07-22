@@ -4,15 +4,18 @@ import pandas as pd
 from sklearn import ensemble
 import joblib
 import numpy as np
-import mlflow
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+import dagshub
+#dagshub.init(repo_owner='Melanie94480', repo_name='mlops-melanie', mlflow=True)
+
 
 print(joblib.__version__)
 
 def train():
     #Tracking :
-    import mlflow
-    mlflow.set_tracking_uri("http://localhost:8080") #url local
+    dagshub.init(repo_owner='Melanie94480', repo_name='mlops-melanie', mlflow=True) #permet de save les experiences sur dagshubs
+
+    #mlflow.set_tracking_uri("http://localhost:8080") #url local
     #mlflow.set_tracking_uri("http://mlflow:8080")  # via reseau docker
 
     # Set experiment 

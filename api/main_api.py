@@ -12,6 +12,8 @@ from sklearn.metrics import (
 )
 import mlflow
 import mlflow.pyfunc
+from fastapi import HTTPException
+
 #from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(
@@ -39,12 +41,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 #model  = joblib.load(MODEL_PATH)
 
 #je charge le meilleur modele de mlflow model registry:
-mlflow.set_tracking_uri("http://localhost:8080") #api lancé avec make api hors docker
+#mlflow.set_tracking_uri("http://localhost:8080") #api lancé avec make api hors docker
 #mlflow.set_tracking_uri("http://mlflow:8080")  #API lancée dans Docker Compose 
+mlflow.set_tracking_uri("https://dagshub.com/Melanie94480/mlops-melanie.mlflow") #recuperera le dernier modele mlflow registry sur dagshub
+
 
 #Utiliser la dernière version enregistrée:
-model = mlflow.pyfunc.load_model("models:/Modele Random Forest/latest") 
-#si version modele specifique : model = mlflow.pyfunc.load_model("models:/Modele Random Forest /1")  #version 1
+model = mlflow.pyfunc.load_model("models:/Modele Random Forest/latest") #si version modele specifique : model = mlflow.pyfunc.load_model("models:/Modele Random Forest /1")  #version 1
+
 
 
 X_TEST_PATH = BASE_DIR / "data" / "preprocessed" / "X_test.csv"
@@ -103,9 +107,15 @@ def home():
 # ─────────────────────────────────────────
 @app.post("/predict", tags=["Prédiction"])
 def predict(data: InputData):
+
+    if model is None:
+        raise HTTPException(status_code=503,detail="Model unavailable")
+
     X = pd.DataFrame([data.model_dump()])
     pred = model.predict(X)
-    return {"prediction": int(pred[0])}
+    prediction = int(pred[0])
+    label = "prioritaire" if prediction == 1 else "non-prioritaire"
+    return {"prediction": prediction, "label": label}
 
     #model correspond à la dernière version de mlflow
 
@@ -119,7 +129,6 @@ def run_retraining():
 
     try:
         print("[retrain] Début de l'entraînement...")
-
         train() # Entraînement + enregistrement dans MLflow du modèle 
 
         # Recharge le dernier modèle pour metrics/predict ...
