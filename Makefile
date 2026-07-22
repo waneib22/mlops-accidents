@@ -23,6 +23,8 @@ help:
 	@echo "  make docker-up   Start docker stack"
 	@echo "  make docker-down Stop docker stack"
 	@echo "  make clean       Clean project"
+	@echo "  make airflow-up               "
+	@echo "  make tests       Tests Apis - data: Integration Continue"
 	@echo ""
 
 install:
