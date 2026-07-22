@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import json
 import logging
-import mlflow
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
