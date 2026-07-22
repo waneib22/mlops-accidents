@@ -96,7 +96,7 @@ target/
 
 # UV
 .venv/
-uv.lock
+#uv.lock
 .python-version
 
 # Bloquer les fichiers de modèles entrainés qui sont lourds
