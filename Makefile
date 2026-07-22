@@ -113,12 +113,8 @@ docker-down:
 
 
 clean:
-	python -c "import shutil, pathlib; [p.unlink() for p in pathlib.Path('.').rglob('*.pyc')]"
-	rmdir /s /q __pycache__ 2>NUL || true
-	rmdir /s /q .pytest_cache 2>NUL || true
-	rmdir /s /q htmlcov 2>NUL || true
-	
-
+	python -c "import shutil, pathlib; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('__pycache__')]"
+	python -c "import shutil; shutil.rmtree('.pytest_cache', ignore_errors=True)"
 
 
 # Monitoring
