@@ -14,7 +14,7 @@ import mlflow
 import mlflow.pyfunc
 from fastapi import HTTPException
 
-#from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_fastapi_instrumentator import Instrumentator
 
 app = FastAPI(
     title="Accidents Routiers — API de prédiction",
@@ -30,7 +30,6 @@ app = FastAPI(
     license_info={"name": "MIT"},
 )
 
-#Instrumentator().instrument(app).expose(app)
 
 # ─────────────────────────────────────────
 # Chargement modèle et données (une seule fois au démarrage)
@@ -185,3 +184,14 @@ def health():
 
 
 # Lancer : uvicorn api.main_api:app --reload
+
+
+# ─────────────────────────────────────────
+# Monitoring prometheus /Grafana
+# ─────────────────────────────────────────
+Instrumentator().instrument(app).expose(
+    app,
+    endpoint="/monitoring",
+    include_in_schema=True,
+    tags=["Monitoring Prometheus"],
+)

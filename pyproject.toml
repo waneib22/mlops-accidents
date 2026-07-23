@@ -1,9 +1,10 @@
 [project]
-name = "template_mlops-accidents-melanie"
+name = "mlops-melanie"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13, <3.14"
+#requires-python = ">=3.11,<3.12"
 dependencies = [
     "click>=8.4.0",
     "coverage>=7.14.0",
@@ -24,11 +25,13 @@ dependencies = [
     "mlflow>=2.0",
     "dagshub>=0.5.0",
     "httpx2>=2.7.0",  #httpx2 car Starlette (utilisé par FastAPI pour son TestClient) recommande désormais ce fork maintenu par Pydantic à la place de httpx, dont le développement a ralenti — ça évite le warning de dépréciation dans mes tests."
+    "dvc-http>=2.32.0",
 ]
 
 [dependency-groups]
 dev = [
-    "pytest>=8.0.0"
+    "flake8>=7.3.0",
+    "pytest>=8.0.0",
 ]
 
 [tool.pytest.ini_options]
