@@ -56,7 +56,7 @@ jobs:
       run: uv pip install dvc dvc-http
 
     - name: Pull DVC data
-      run: dvc pull
+      run: uv run dvc pull
 
     #lancer les tests
     - name: Test with pytest

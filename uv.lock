@@ -1705,6 +1705,69 @@ wheels = [
 ]
 
 [[package]]
+name = "mlops-melanie"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "click" },
+    { name = "coverage" },
+    { name = "dagshub" },
+    { name = "dvc", extra = ["gdrive"] },
+    { name = "dvc-http" },
+    { name = "fastapi" },
+    { name = "flake8" },
+    { name = "httpx2" },
+    { name = "imbalanced-learn" },
+    { name = "joblib" },
+    { name = "mlflow" },
+    { name = "numpy" },
+    { name = "pandas" },
+    { name = "pathlib" },
+    { name = "prometheus-fastapi-instrumentator" },
+    { name = "pydantic" },
+    { name = "python-dotenv" },
+    { name = "scikit-learn" },
+    { name = "sphinx" },
+    { name = "uvicorn" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "flake8" },
+    { name = "pytest" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "click", specifier = ">=8.4.0" },
+    { name = "coverage", specifier = ">=7.14.0" },
+    { name = "dagshub", specifier = ">=0.5.0" },
+    { name = "dvc", extras = ["gdrive"], specifier = ">=3.67.1" },
+    { name = "dvc-http", specifier = ">=2.32.0" },
+    { name = "fastapi", specifier = ">=0.136.1" },
+    { name = "flake8", specifier = ">=7.3.0" },
+    { name = "httpx2", specifier = ">=2.7.0" },
+    { name = "imbalanced-learn", specifier = ">=0.14.1" },
+    { name = "joblib", specifier = ">=1.5.3" },
+    { name = "mlflow", specifier = ">=2.0" },
+    { name = "numpy", specifier = ">=2.4.6" },
+    { name = "pandas", specifier = ">=2.0,<3.0" },
+    { name = "pathlib", specifier = ">=1.0.1" },
+    { name = "prometheus-fastapi-instrumentator", specifier = ">=8.0.0" },
+    { name = "pydantic", specifier = ">=2.13.4" },
+    { name = "python-dotenv", specifier = ">=1.0.0" },
+    { name = "scikit-learn", specifier = ">=1.8.0" },
+    { name = "sphinx", specifier = ">=9.1.0" },
+    { name = "uvicorn", specifier = ">=0.47.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=7.3.0" },
+    { name = "pytest", specifier = ">=8.0.0" },
+]
+
+[[package]]
 name = "multidict"
 version = "6.7.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2811,67 +2874,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/46/58/8c37dea7bbf769b20d58e7ace7e5edfe65b849442b00ffcdd56be88697c6/tabulate-0.10.0.tar.gz", hash = "sha256:e2cfde8f79420f6deeffdeda9aaec3b6bc5abce947655d17ac662b126e48a60d", size = 91754, upload-time = "2026-03-04T18:55:34.402Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/99/55/db07de81b5c630da5cbf5c7df646580ca26dfaefa593667fc6f2fe016d2e/tabulate-0.10.0-py3-none-any.whl", hash = "sha256:f0b0622e567335c8fabaaa659f1b33bcb6ddfe2e496071b743aa113f8774f2d3", size = 39814, upload-time = "2026-03-04T18:55:31.284Z" },
-]
-
-[[package]]
-name = "template-mlops-accidents-melanie"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "click" },
-    { name = "coverage" },
-    { name = "dagshub" },
-    { name = "dvc", extra = ["gdrive"] },
-    { name = "fastapi" },
-    { name = "flake8" },
-    { name = "httpx2" },
-    { name = "imbalanced-learn" },
-    { name = "joblib" },
-    { name = "mlflow" },
-    { name = "numpy" },
-    { name = "pandas" },
-    { name = "pathlib" },
-    { name = "prometheus-fastapi-instrumentator" },
-    { name = "pydantic" },
-    { name = "python-dotenv" },
-    { name = "scikit-learn" },
-    { name = "sphinx" },
-    { name = "uvicorn" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "flake8" },
-    { name = "pytest" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "click", specifier = ">=8.4.0" },
-    { name = "coverage", specifier = ">=7.14.0" },
-    { name = "dagshub", specifier = ">=0.5.0" },
-    { name = "dvc", extras = ["gdrive"], specifier = ">=3.67.1" },
-    { name = "fastapi", specifier = ">=0.136.1" },
-    { name = "flake8", specifier = ">=7.3.0" },
-    { name = "httpx2", specifier = ">=2.7.0" },
-    { name = "imbalanced-learn", specifier = ">=0.14.1" },
-    { name = "joblib", specifier = ">=1.5.3" },
-    { name = "mlflow", specifier = ">=2.0" },
-    { name = "numpy", specifier = ">=2.4.6" },
-    { name = "pandas", specifier = ">=2.0,<3.0" },
-    { name = "pathlib", specifier = ">=1.0.1" },
-    { name = "prometheus-fastapi-instrumentator", specifier = ">=8.0.0" },
-    { name = "pydantic", specifier = ">=2.13.4" },
-    { name = "python-dotenv", specifier = ">=1.0.0" },
-    { name = "scikit-learn", specifier = ">=1.8.0" },
-    { name = "sphinx", specifier = ">=9.1.0" },
-    { name = "uvicorn", specifier = ">=0.47.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "flake8", specifier = ">=7.3.0" },
-    { name = "pytest", specifier = ">=8.0.0" },
 ]
 
 [[package]]
