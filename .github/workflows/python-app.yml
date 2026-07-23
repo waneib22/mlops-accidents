@@ -55,6 +55,14 @@ jobs:
     - name: Install DVC
       run: uv pip install dvc dvc-http
 
+
+    - name: Configure DVC remote credentials
+      run: |
+        uv run dvc remote modify remote_dagshub --local auth basic
+        uv run dvc remote modify remote_dagshub --local user "${{ secrets.MLFLOW_TRACKING_USERNAME }}"
+        uv run dvc remote modify remote_dagshub --local password "${{ secrets.MLFLOW_TRACKING_PASSWORD }}"
+
+
     - name: Pull DVC data
       run: uv run dvc pull
 
