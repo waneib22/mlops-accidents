@@ -115,3 +115,9 @@ class TestDataTransformations:
         X_train, X_test, _, _ = train_test_split(X, y, test_size=0.3, random_state=42)
         assert len(X_train) == 70
         assert len(X_test) == 30
+
+
+# pour faire le test du fichier test_data avec les logs :
+# uv run pytest tests/test_data.py -vv -s
+
+#pour lancer tous les tests : uv run pytest tests
