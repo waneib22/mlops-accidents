@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import json
 import logging
-import mlflow
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -81,16 +80,16 @@ def main(
     save_metrics(metrics, metrics_output_path)
     logger.info(f"Metrics saved to {metrics_output_path}")
 
-    if log_to_mlflow:
-        mlflow.set_tracking_uri("http://localhost:8080")
-        mlflow.set_experiment("Prediction_Accidents")
-        with mlflow.start_run(run_name="Evaluation_RandomForest_Melanie"):
-            for name, value in metrics.items():
-                mlflow.log_metric(f"eval_{name}", value)
-            mlflow.log_artifact(metrics_output_path)
-        logger.info("Evaluation metrics logged to MLflow")
+    #if log_to_mlflow:
+    #    mlflow.set_tracking_uri("http://localhost:8080")
+    #    mlflow.set_experiment("Prediction_Accidents")
+    #    with mlflow.start_run(run_name="Evaluation_RandomForest_Melanie"):
+    #        for name, value in metrics.items():
+    #            mlflow.log_metric(f"eval_{name}", value)
+    #        mlflow.log_artifact(metrics_output_path)
+    #    logger.info("Evaluation metrics logged to MLflow")
 
-    return metrics
+    #return metrics
 
 
 if __name__ == "__main__":

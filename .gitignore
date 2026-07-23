@@ -26,6 +26,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+.env
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -91,7 +92,7 @@ target/
 
 # UV
 .venv/
-uv.lock
+#uv.lock
 .python-version
 
 # Bloquer les fichiers de modèles entrainés qui sont lourds
@@ -102,6 +103,7 @@ uv.lock
 .dockerignore
 
 # MLflow
+mlflow/
 mlruns/
 
 # Bloquer la base de données MLflow locale si elle est créée par erreur

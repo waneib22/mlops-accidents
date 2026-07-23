@@ -1,21 +1,25 @@
 
-# Image Python - même version que pyproject.toml
-FROM python:3.13
+# Python base (stable recommandé, 3.11 ou 3.12 > 3.13 pour compatibilité)
+FROM python:3.11-slim
 
-# Répertoire de travail dans le conteneur
 WORKDIR /app
 
-# Copier requirements en premier (optimise le cache Docker)
-COPY requirements.txt .
+# Installer uv
+RUN pip install --no-cache-dir uv
 
-# Installer les dépendances
-RUN pip install --no-cache-dir -r requirements.txt
+# Copier uniquement les fichiers de dépendances d'abord (cache Docker)
+COPY requirements.txt ./
 
-# Copier tout le projet
+# Installer les dépendances avec uv (plus rapide que pip)
+RUN uv pip install --system -r requirements.txt
+
+# Copier le reste du projet
 COPY . .
 
-# Exposer le port FastAPI
+# Éviter les fichiers inutiles dans l’image 
+ENV PYTHONUNBUFFERED=1
+
 EXPOSE 8000
 
-# Lancer l'API principale
+# Lancer FastAPI
 CMD ["uvicorn", "api.main_api:app", "--host", "0.0.0.0", "--port", "8000"]

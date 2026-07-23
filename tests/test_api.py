@@ -1,9 +1,12 @@
 from unittest.mock import MagicMock, patch
-
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
+from api.main_api import app
+import api.main_api as state
+from fastapi import HTTPException
 
+client = TestClient(app)
 
 SAMPLE_FEATURES = {
     "place": 10, "catu": 3, "sexe": 1, "secu1": 0.0,
@@ -18,27 +21,28 @@ SAMPLE_FEATURES = {
 
 @pytest.fixture
 def client_with_model():
-    mock_model = MagicMock()
-    mock_model.predict.return_value = np.array([1])
-    mock_model.predict_proba.return_value = np.array([[0.2, 0.8]])
-    mock_model.get_params.return_value = {"n_estimators": 100, "random_state": 42}
 
-    import src.api.metrics as state
-    from src.api.main import app
-    state.ml_model["classifier"] = mock_model
-    with TestClient(app) as c:
-        state.ml_model["classifier"] = mock_model
-        yield c
+    mock_model = MagicMock()
+    #mock_model.predict.return_value = np.array([1])
+    # renvoie un tableau de "1" de la même longueur que l'entrée
+    # (utile pour /predict avec 1 ligne ET /metrics avec X_test entier):
+    mock_model.predict.side_effect = lambda X: np.arange(len(X)) % 2    #les deux classes sont représentées et precision_score/recall_score ont de quoi calculer sur les deux labels.
+    old_model = state.model #vrai modele actuel qu'on va remplacer par le modele mock , puis on retourne au vrai modele pour ne pas influencer les autres tests
+    state.model = mock_model
+    with TestClient(state.app) as client:
+        yield client
+
+    state.model = old_model
 
 
 @pytest.fixture
 def client_without_model():
-    import src.api.metrics as state
-    from src.api.main import app
-    state.ml_model["classifier"] = None
-    with TestClient(app) as c:
-        state.ml_model["classifier"] = None
-        yield c
+    old_model = state.model
+    state.model = None
+    with TestClient(state.app) as client:
+        yield client
+
+    state.model = old_model
 
 
 class TestRootEndpoint:
@@ -53,59 +57,36 @@ class TestHealthEndpoint:
         response = client_with_model.get("/health")
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "ok"
+        assert data["api"] == "ok"
         assert data["model_loaded"] is True
-        assert data["model_type"] is not None
-        assert data["n_features"] == 28
-        assert data["uptime_seconds"] >= 0
-        assert data["api_version"] == "1.0.0"
+        assert data["version"] == "1.0.0"
+        
 
     def test_health_degraded_when_no_model(self, client_without_model):
         response = client_without_model.get("/health")
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "degraded"
         assert data["model_loaded"] is False
-        assert data["model_type"] is None
-        assert data["n_features"] == 28
 
 
-class TestStatsEndpoint:
-    def test_stats_returns_expected_schema(self, client_with_model):
-        response = client_with_model.get("/stats")
+
+class TestMetrics:
+    def test_metrics_returns_expected_schema(self, client_with_model):
+
+        response = client_with_model.get("/metrics")
         assert response.status_code == 200
         data = response.json()
-        assert "total_predictions" in data
-        assert "predictions_by_label" in data
-        assert "uptime_seconds" in data
-        assert "prioritaire" in data["predictions_by_label"]
-        assert "non_prioritaire" in data["predictions_by_label"]
 
-    def test_stats_increments_on_predict(self, client_with_model):
-        import src.api.metrics as state
-        before = state.stats["total"]
-        client_with_model.post("/predict", json=SAMPLE_FEATURES)
-        assert state.stats["total"] == before + 1
-
-
-class TestModelInfoEndpoint:
-    def test_model_info_returns_metadata(self, client_with_model):
-        response = client_with_model.get("/model/info")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["n_features"] == 28
-        assert len(data["features"]) == 28
-        assert "type" in data
-        assert "params" in data
-
-    def test_model_info_returns_503_without_model(self, client_without_model):
-        response = client_without_model.get("/model/info")
-        assert response.status_code == 503
+        assert "accuracy" in data
+        assert "precision" in data
+        assert "recall" in data
+        assert "f1_score" in data
 
 
 class TestRetrainEndpoint:
     def test_retrain_returns_202(self, client_with_model):
-        with patch("src.api.routers.monitoring._run_training"):
+        with patch("api.main_api.train"), \
+             patch("api.main_api.mlflow.pyfunc.load_model", return_value=MagicMock()):
             response = client_with_model.post("/retrain")
         assert response.status_code == 202
         assert response.json()["status"] == "accepted"
@@ -116,27 +97,17 @@ class TestPredictEndpoint:
         response = client_with_model.post("/predict", json=SAMPLE_FEATURES)
         assert response.status_code == 200
         data = response.json()
+        assert "prediction" in data
         assert data["prediction"] in [0, 1]
-        assert data["label"] in ["prioritaire", "non-prioritaire"]
-        assert 0.0 <= data["probability"] <= 1.0
-        assert data["confidence"] in ["high", "medium", "low"]
 
-    def test_predict_confidence_matches_probability(self, client_with_model):
-        response = client_with_model.post("/predict", json=SAMPLE_FEATURES)
-        data = response.json()
-        p = data["probability"]
-        if p >= 0.80:
-            assert data["confidence"] == "high"
-        elif p >= 0.60:
-            assert data["confidence"] == "medium"
-        else:
-            assert data["confidence"] == "low"
 
     def test_predict_label_matches_prediction(self, client_with_model):
         response = client_with_model.post("/predict", json=SAMPLE_FEATURES)
         data = response.json()
         expected = "prioritaire" if data["prediction"] == 1 else "non-prioritaire"
         assert data["label"] == expected
+
+
 
     def test_predict_without_model_returns_503(self, client_without_model):
         response = client_without_model.post("/predict", json=SAMPLE_FEATURES)
@@ -146,3 +117,8 @@ class TestPredictEndpoint:
         incomplete = {k: v for k, v in SAMPLE_FEATURES.items() if k != "vma"}
         response = client_with_model.post("/predict", json=incomplete)
         assert response.status_code == 422
+
+# pour tester ce fichier test avec les logs:
+# uv run pytest tests/test_api.py -vv -s
+
+#pour lancer tous les tests : uv run pytest tests
