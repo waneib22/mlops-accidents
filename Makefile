@@ -1,5 +1,8 @@
 
-.PHONY: help install lint test api mlflow train docker-up docker-down clean data-pull model-pull pull-all push-data push-model
+.PHONY: help install lint api mlflow-local mlflow-dagshub \
+dvc-repro pull-all push-all pip-status train evaluate \
+health predict docker-up-full docker-build docker-up docker-down \
+clean monitoring-up monitoring-down monitoring-logs tests airflow-up
 
 PYTHON   := python
 UVICORN  := python -m uvicorn
@@ -13,7 +16,7 @@ help:
 	@echo "  make lint        		Run flake8 linter"
 	@echo "  make mlflow-local      Start MLFlow tracking server ui"
 	@echo "  make mlflow-dagshub    Start MLFlow with dagshub"
-	@echo "  make pull-all    		Pull all DVC-tracked data and models (manual execution)" (A faire avant dvc-repro si pas de dossier data)
+	@echo "  make pull-all    		Pull all DVC-tracked data and models (manual execution) (A faire avant dvc-repro si pas de dossier data)"
 	@echo "  make dvc-repro   		Run full DVC pipeline (import data + preprocess + train + evaluate if needed)"
 	@echo "  make train       		Train model(manual execution)"
 	@echo "  make evaluate    		Evaluate model (manual execution)"
@@ -49,7 +52,7 @@ mlflow-local:
 	--port 8080 \
 	--backend-store-uri sqlite:///mlflow.db \
 	--default-artifact-root ./mlruns \
-	--serve-artifacts
+	--serve-artifacts44DDDDDDDDDDDE
 
 mlflow-dagshub:
 	python -c "import dagshub; dagshub.init(repo_owner='Melanie94480', repo_name='mlops-melanie', mlflow=True)"
@@ -80,7 +83,7 @@ push-all: # Envoie sur DVC et Git si nvx changements => juste modifier intituler
 pip-status:
 	dvc status
 
-train: data-pull #(train: data-pull) — ça garantit qu'on a toujours les données à jour avant d'entraîner)
+train: pull-all #(train: data-pull) — ça garantit qu'on a toujours les données à jour avant d'entraîner)
 	PYTHONPATH=. $(PYTHON) src/models/train_model.py
 
 evaluate:
@@ -126,3 +129,8 @@ monitoring-down:
 
 monitoring-logs:
 	docker compose logs -f prometheus grafana
+
+
+#Tests
+tests:
+	uv run pytest -vv
