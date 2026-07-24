@@ -4,22 +4,16 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Installer uv
 RUN pip install --no-cache-dir uv
 
-# Copier uniquement les fichiers de dépendances d'abord (cache Docker)
-COPY requirements.txt ./
+COPY pyproject.toml uv.lock ./
 
-# Installer les dépendances avec uv (plus rapide que pip)
-RUN uv pip install --system -r requirements.txt
+RUN uv sync --frozen
 
-# Copier le reste du projet
 COPY . .
 
-# Éviter les fichiers inutiles dans l’image 
 ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 
-# Lancer FastAPI
-CMD ["uvicorn", "api.main_api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "uvicorn", "api.main_api:app", "--host", "0.0.0.0", "--port", "8000"]

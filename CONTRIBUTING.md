@@ -7,7 +7,7 @@ Ce document décrit les étapes pour contribuer proprement.
 
 ## Prérequis
 
-- Python 3.10+
+- Python 3.11
 - Git
 - Docker Desktop 24+
 - Make
