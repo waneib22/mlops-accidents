@@ -2,7 +2,8 @@
 .PHONY: help install lint api mlflow-local mlflow-dagshub \
 dvc-repro pull-all push-all pip-status train evaluate \
 health predict docker-up-full docker-build docker-up docker-down \
-clean monitoring-up monitoring-down monitoring-logs tests airflow-up
+clean monitoring-up monitoring-down monitoring-logs tests \
+airflow-up airflow-down airflow-logs airflow-dags
 
 PYTHON   := python
 UVICORN  := python -m uvicorn
@@ -29,7 +30,10 @@ help:
 	@echo "  make docker-build      Rebuild Docker images (Si modif du Dockerfile)"
 	@echo "  make docker-down       Stop Docker stack" 
 	@echo "  make clean       		Clean project"
-	@echo "  make airflow-up               "
+	@echo "  make airflow-up        Start Airflow (UI http://localhost:8080, admin/admin)"
+	@echo "  make airflow-down      Stop Airflow"
+	@echo "  make airflow-logs      Show Airflow scheduler logs"
+	@echo "  make airflow-dags      List DAGs and their import errors"
 	@echo "  make tests       		Tests Apis - data: Integration Continue"
 	@echo "  make monitoring-up     Start Prometheus + Grafana (Docker)"
 	@echo "  make monitoring-down   Stop Prometheus + Grafana (Docker)"
@@ -129,6 +133,25 @@ monitoring-down:
 
 monitoring-logs:
 	docker compose logs -f prometheus grafana
+
+
+# Airflow
+# Les services sont derrière le profil "airflow" : ils ne démarrent qu'ici,
+# `make docker-up` reste inchangé. Voir docs/airflow.md.
+airflow-up:
+	docker compose --profile airflow up -d --build airflow-webserver airflow-scheduler
+	@echo "Airflow : http://localhost:8080 (admin / admin) — le webserver met ~1 min à répondre"
+
+airflow-down:
+	docker compose --profile airflow stop airflow-webserver airflow-scheduler airflow-postgres
+
+airflow-logs:
+	docker compose --profile airflow logs -f airflow-scheduler
+
+airflow-dags:
+	docker exec airflow_scheduler airflow dags list
+	@echo "--- erreurs d'import ---"
+	docker exec airflow_scheduler airflow dags list-import-errors
 
 
 #Tests
