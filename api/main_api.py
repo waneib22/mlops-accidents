@@ -8,6 +8,7 @@ from sklearn.metrics import (
     f1_score, classification_report
 )
 from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_client import Counter, Histogram
 
 app = FastAPI(
     title="Accidents MLOps - API principale",
@@ -15,7 +16,25 @@ app = FastAPI(
     version="1.0"
 )
 
-Instrumentator().instrument(app).expose(app)
+# Métriques HTTP génériques (latence, volume, erreurs, requêtes en cours)
+Instrumentator(
+    should_instrument_requests_inprogress=True,
+    inprogress_name="http_requests_in_progress",
+    inprogress_labels=True,
+).instrument(app).expose(app)
+
+# ─────────────────────────────────────────
+# Métriques ML métier (exposées sur le même /metrics Prometheus)
+# ─────────────────────────────────────────
+PREDICTIONS_TOTAL = Counter(
+    "model_predictions_total",
+    "Nombre de prédictions par classe de gravité prédite",
+    ["predicted_class"],
+)
+INFERENCE_LATENCY = Histogram(
+    "model_inference_duration_seconds",
+    "Temps d'inférence du modèle (predict seul, hors I/O HTTP)",
+)
 
 # ─────────────────────────────────────────
 # Chargement modèle et données (une seule fois au démarrage)
@@ -78,14 +97,17 @@ def home():
 @app.post("/predict", tags=["Prédiction"])
 def predict(data: InputData):
     X = pd.DataFrame([data.model_dump()])
-    pred = model.predict(X)
-    return {"prediction": int(pred[0])}
+    with INFERENCE_LATENCY.time():
+        pred = model.predict(X)
+    predicted = int(pred[0])
+    PREDICTIONS_TOTAL.labels(predicted_class=str(predicted)).inc()
+    return {"prediction": predicted}
 
 
 # ─────────────────────────────────────────
 # MÉTRIQUES
 # ─────────────────────────────────────────
-@app.get("/metrics", tags=["Métriques"])
+@app.get("/model/metrics", tags=["Métriques"])
 def get_metrics():
     y_pred = model.predict(X_test)
     return {

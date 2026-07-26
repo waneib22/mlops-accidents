@@ -105,3 +105,14 @@ Création dossier api : mkdir api
 │   ├── prediction_api.py          afficher les prédictions
 │   ├── metric_api.py             afficher les performances du modèle
 │   └── main_api.py                    regroupe toutes les api (bonnes pratiques pour MLOps)
+
+------------------------
+
+## Documentation
+
+| Document | Contenu |
+|----------|---------|
+| [docs/api.md](docs/api.md) | Référence des endpoints de l'API (prédiction, métriques, santé) |
+| [docs/model.md](docs/model.md) | Description du modèle et de l'entraînement |
+| [docs/data_pipeline.md](docs/data_pipeline.md) | Pipeline de préparation des données |
+| [docs/monitoring.md](docs/monitoring.md) | Stack de supervision Prometheus & Grafana (architecture, métriques, panels) |

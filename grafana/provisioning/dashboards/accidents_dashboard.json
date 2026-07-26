@@ -152,8 +152,8 @@
       "targets": [
         {
           "datasource": "Prometheus",
-          "expr": "sum by (status_code) (rate(http_requests_total{job=\"accidents_api\", status=~\"4..|5..\"}[1m]))",
-          "legendFormat": "HTTP {{status_code}}"
+          "expr": "sum by (status) (rate(http_requests_total{job=\"accidents_api\", status=~\"4..|5..\"}[1m]))",
+          "legendFormat": "HTTP {{status}}"
         }
       ],
       "fieldConfig": {
@@ -178,6 +178,42 @@
       ],
       "fieldConfig": {
         "defaults": { "unit": "short", "custom": { "lineWidth": 2 } }
+      }
+    },
+    {
+      "id": 9,
+      "title": "Prédictions par classe de gravité",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 20, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "sum by (predicted_class) (rate(model_predictions_total{job=\"accidents_api\"}[5m]))",
+          "legendFormat": "classe {{predicted_class}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 20, "stacking": { "mode": "normal" } }
+        }
+      }
+    },
+    {
+      "id": 10,
+      "title": "Temps d'inférence modèle (p95)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 20, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "datasource": "Prometheus",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(model_inference_duration_seconds_bucket{job=\"accidents_api\"}[5m])))",
+          "legendFormat": "inférence p95"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s", "custom": { "lineWidth": 2 } }
       }
     }
   ],
