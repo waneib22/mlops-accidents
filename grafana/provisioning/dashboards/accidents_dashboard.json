@@ -152,8 +152,8 @@
       "targets": [
         {
           "datasource": "Prometheus",
-          "expr": "sum by (status_code) (rate(http_requests_total{job=\"accidents_api\", status=~\"4..|5..\"}[1m]))",
-          "legendFormat": "HTTP {{status_code}}"
+          "expr": "sum by (status) (rate(http_requests_total{job=\"accidents_api\", status=~\"4xx|5xx\"}[1m]))",
+          "legendFormat": "HTTP {{status}}"
         }
       ],
       "fieldConfig": {

@@ -189,7 +189,13 @@ def health():
 # ─────────────────────────────────────────
 # Monitoring prometheus /Grafana
 # ─────────────────────────────────────────
-Instrumentator().instrument(app).expose(
+Instrumentator(
+    # Alimente le panel "Requêtes en cours" du dashboard Grafana : sans cette option,
+    # la métrique http_requests_in_progress n'est jamais exposée.
+    should_instrument_requests_inprogress=True,
+    inprogress_name="http_requests_in_progress",
+    inprogress_labels=True,
+).instrument(app).expose(
     app,
     endpoint="/monitoring",
     include_in_schema=True,
