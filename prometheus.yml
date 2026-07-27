@@ -4,5 +4,14 @@ global:
 
 scrape_configs:
   - job_name: "accidents_api"
-    static_configs:
-      - targets: ["accidents_api:8000"]   # nom du service Docker + port FastAPI
+    # L'Instrumentator FastAPI expose les métriques sur /monitoring (voir api/main_api.py),
+    # et non sur le /metrics par défaut de Prometheus (occupé par les métriques du modèle).
+    metrics_path: /monitoring
+    # Le service api tourne en 3 replicas : la résolution DNS de "api" renvoie les 3
+    # adresses. dns_sd_configs les découvre comme 3 targets distinctes, sinon Prometheus
+    # tomberait au hasard sur un seul replica à chaque scrape et les compteurs seraient
+    # incohérents.
+    dns_sd_configs:
+      - names: ["api"]   # nom du service Docker Compose
+        type: A
+        port: 8000

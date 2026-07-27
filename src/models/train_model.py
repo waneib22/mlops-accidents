@@ -15,7 +15,15 @@ print(joblib.__version__)
 
 def train():
     #Tracking :
-    dagshub.init(repo_owner='Melanie94480', repo_name='mlops-melanie', mlflow=True) #permet de save les experiences sur dagshubs
+    #dagshub.init(repo_owner='Melanie94480', repo_name='mlops-melanie', mlflow=True) #permet de save les experiences sur dagshubs
+
+    # Tracking : l'authentification DagsHub se fait via les variables d'environnement
+    # MLFLOW_TRACKING_URI / MLFLOW_TRACKING_USERNAME / MLFLOW_TRACKING_PASSWORD,
+    # chargées par load_dotenv() au démarrage de l'API (main_api.py).
+    # ⚠️ dagshub.init() est volontairement retiré : son flow d'auth interactif
+    # peut bloquer indéfiniment quand train() est exécuté en BackgroundTask (sans terminal).
+
+
 
     #mlflow.set_tracking_uri("http://localhost:8080") #url local
     #mlflow.set_tracking_uri("http://mlflow:8080")  # via reseau docker
