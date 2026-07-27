@@ -161,17 +161,38 @@ with DAG(
         ),
     )
 
+    # Le garde-fou évite le traceback dagshub « token can't be empty », illisible
+    # et émis seulement après plusieurs minutes : sans jeton, autant échouer
+    # tout de suite avec la marche à suivre.
     train_model = BashOperator(
         task_id="train_model",
-        bash_command="python src/models/train_model.py",
+        bash_command=(
+            'if [ -z "${DAGSHUB_USER_TOKEN:-}" ]; then\n'
+            '  echo "ERREUR : la variable DAGSHUB_USER_TOKEN est vide."\n'
+            '  echo "train_model.py enregistre le modèle dans le Model Registry"\n'
+            '  echo "DagsHub, ce qui exige un jeton d\'authentification."\n'
+            '  echo ""\n'
+            '  echo "Marche à suivre :"\n'
+            '  echo "  1. Jeton sur https://dagshub.com/user/settings/tokens"\n'
+            '  echo "  2. Ecrire DAGSHUB_USER_TOKEN=<jeton> dans le fichier .env"\n'
+            '  echo "     a la racine du projet (deja ignore par git)"\n'
+            '  echo "  3. make airflow-down && make airflow-up"\n'
+            '  exit 1\n'
+            'fi\n'
+            'python src/models/train_model.py'
+        ),
         cwd=PROJECT_DIR,
         append_env=True,
         env={"PYTHONPATH": PROJECT_DIR},
+        # Inutile de réessayer une erreur d'authentification : le jeton ne
+        # réapparaîtra pas tout seul deux minutes plus tard.
+        retries=0,
         execution_timeout=timedelta(minutes=45),
         doc_md=(
             "Entraîne le Random Forest, journalise params et métriques dans MLflow "
             "et enregistre le modèle dans le Model Registry DagsHub. "
-            "**Nécessite les identifiants DagsHub** (voir `docs/airflow.md`)."
+            "**Nécessite `DAGSHUB_USER_TOKEN` dans le fichier `.env`** "
+            "(voir `docs/airflow.md`)."
         ),
     )
 

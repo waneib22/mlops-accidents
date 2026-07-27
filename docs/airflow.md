@@ -90,16 +90,35 @@ Le modèle actuel est à **0.776** d'accuracy : il passe le seuil par défaut.
 ### Prérequis : identifiants DagsHub
 
 `train_model.py` **écrit** dans MLflow sur DagsHub, ce qui exige une authentification.
-Sans jeton, la tâche échoue immédiatement sur `ValueError: token can't be empty`.
+C'est la cause n°1 d'échec du DAG : sans jeton, la tâche `train_model` s'arrête net
+et les quatre tâches suivantes restent en `upstream_failed`.
 
-Exporter le jeton avant `make airflow-up` :
+Renseigner le jeton dans le fichier `.env` à la racine du projet :
 
 ```bash
-export DAGSHUB_USER_TOKEN=<votre_token_dagshub>
-# ou
-export MLFLOW_TRACKING_USERNAME=<user>
-export MLFLOW_TRACKING_PASSWORD=<token>
+cp .env.example .env      # si .env n'existe pas encore
 ```
+
+```dotenv
+DAGSHUB_USER_TOKEN=<votre_token_dagshub>
+```
+
+Jeton personnel : https://dagshub.com/user/settings/tokens
+
+Puis recréer les conteneurs pour qu'ils prennent la variable :
+
+```bash
+make airflow-down && make airflow-up
+```
+
+Docker Compose charge `.env` automatiquement, il n'y a donc rien à exporter dans le
+terminal, et le réglage survit à un changement de shell. `.env` est ignoré par git :
+le jeton ne part jamais sur GitHub.
+
+Un garde-fou en tête de `train_model` vérifie la présence de la variable et affiche
+cette marche à suivre dans les logs de la tâche, plutôt que le traceback dagshub
+`ValueError: token can't be empty`. Cette tâche ne fait volontairement **aucun retry** :
+un défaut d'authentification ne se répare pas en réessayant deux minutes plus tard.
 
 Les autres tâches n'en ont pas besoin : la **lecture** du modèle depuis le registry
 DagsHub fonctionne en anonyme, c'est pourquoi l'API démarre sans identifiants.
