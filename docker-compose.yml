@@ -27,6 +27,11 @@ x-airflow-common: &airflow-common
     ACCIDENTS_API_URL: http://api:8000
     PROMETHEUS_URL: http://prometheus:9090
     # Nécessaires à l'écriture dans MLflow/DagsHub lors de l'entraînement.
+    # train_model.py n'appelle plus dagshub.init() (son auth interactive bloque
+    # quand train() tourne en BackgroundTask depuis l'API) : il lit uniquement
+    # ces variables. L'API les charge via load_dotenv(), mais Airflow exécute le
+    # script en direct, il faut donc les lui passer explicitement.
+    MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI:-}
     MLFLOW_TRACKING_USERNAME: ${MLFLOW_TRACKING_USERNAME:-}
     MLFLOW_TRACKING_PASSWORD: ${MLFLOW_TRACKING_PASSWORD:-}
     DAGSHUB_USER_TOKEN: ${DAGSHUB_USER_TOKEN:-}
