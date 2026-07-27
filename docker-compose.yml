@@ -42,6 +42,10 @@ x-airflow-common: &airflow-common
     - ./src:/opt/airflow/project/src
     - ./data:/opt/airflow/project/data
     - ./metrics:/opt/airflow/project/metrics
+    # Mode MLflow local (sans DagsHub) : accueille la base SQLite et les
+    # artefacts. Monté même quand le tracking pointe sur DagsHub — dans ce
+    # cas le dossier reste simplement vide.
+    - ./mlruns_local:/opt/airflow/project/mlruns
     - airflow_logs:/opt/airflow/logs
   depends_on:
     airflow-postgres:

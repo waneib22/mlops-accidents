@@ -87,38 +87,66 @@ docker exec airflow_scheduler airflow variables set accidents_min_accuracy 0.75
 
 Le modèle actuel est à **0.776** d'accuracy : il passe le seuil par défaut.
 
-### Prérequis : identifiants DagsHub
+### Prérequis : configuration MLflow
 
-`train_model.py` **écrit** dans MLflow sur DagsHub, ce qui exige une authentification.
-C'est la cause n°1 d'échec du DAG : sans jeton, la tâche `train_model` s'arrête net
-et les quatre tâches suivantes restent en `upstream_failed`.
+`train_model.py` **écrit** dans MLflow, ce qui demande une configuration explicite.
+C'est la cause n°1 d'échec du DAG : mal réglé, `train_model` s'arrête et les quatre
+tâches suivantes restent en `upstream_failed`.
 
-Renseigner le jeton dans le fichier `.env` à la racine du projet :
+Le script n'appelle plus `dagshub.init()` — son flow d'authentification interactif
+bloque quand `train()` tourne en `BackgroundTask` depuis l'API. Il lit uniquement
+`MLFLOW_TRACKING_URI` et, en mode DagsHub, `MLFLOW_TRACKING_USERNAME` /
+`MLFLOW_TRACKING_PASSWORD`. L'API les charge via `load_dotenv()` ; Airflow exécute le
+script en direct, elles lui sont donc passées par `docker-compose.yml`.
 
 ```bash
 cp .env.example .env      # si .env n'existe pas encore
 ```
 
+**Mode 1 — local, sans DagsHub.** Aucun compte ni jeton. C'est le mode par défaut
+de `.env.example` :
+
 ```dotenv
-DAGSHUB_USER_TOKEN=<votre_token_dagshub>
+MLFLOW_TRACKING_URI=sqlite:////opt/airflow/project/mlruns/mlflow.db
 ```
 
-Jeton personnel : https://dagshub.com/user/settings/tokens
+Base et artefacts atterrissent dans `./mlruns_local`, monté en écriture dans les
+conteneurs et ignoré par git. **SQLite est indispensable** : `train_model.py` passe
+`registered_model_name`, donc utilise le Model Registry, qu'un simple stockage
+fichier ne supporte pas. Un stockage fichier échouerait par ailleurs sur une
+`PermissionError`, l'utilisateur `airflow` ne pouvant pas écrire dans le projet monté.
 
-Puis recréer les conteneurs pour qu'ils prennent la variable :
+**Mode 2 — DagsHub.** Exige un droit **Write** sur le dépôt : en lecture seule,
+MLflow renvoie `403` sur `runs/create` au moment de créer le run. Vérifier ses droits :
+
+```bash
+curl -s -H "Authorization: Bearer <jeton>" \
+  https://dagshub.com/api/v1/repos/<owner>/<repo> | grep permissions
+```
+
+```dotenv
+MLFLOW_TRACKING_URI=https://dagshub.com/Melanie94480/mlops-melanie.mlflow
+MLFLOW_TRACKING_USERNAME=<jeton>
+MLFLOW_TRACKING_PASSWORD=<jeton>
+```
+
+Sur DagsHub, le jeton sert à la fois d'identifiant et de mot de passe. Jeton
+personnel : https://dagshub.com/user/settings/tokens
+
+Dans les deux cas, recréer les conteneurs pour qu'ils prennent les variables :
 
 ```bash
 make airflow-down && make airflow-up
 ```
 
-Docker Compose charge `.env` automatiquement, il n'y a donc rien à exporter dans le
-terminal, et le réglage survit à un changement de shell. `.env` est ignoré par git :
-le jeton ne part jamais sur GitHub.
+Docker Compose charge `.env` automatiquement : rien à exporter dans le terminal, et
+le réglage survit à un changement de shell. `.env` est ignoré par git, les jetons ne
+partent jamais sur GitHub.
 
-Un garde-fou en tête de `train_model` vérifie la présence de la variable et affiche
-cette marche à suivre dans les logs de la tâche, plutôt que le traceback dagshub
-`ValueError: token can't be empty`. Cette tâche ne fait volontairement **aucun retry** :
-un défaut d'authentification ne se répare pas en réessayant deux minutes plus tard.
+Un garde-fou en tête de `train_model` vérifie ces variables et affiche la marche à
+suivre dans les logs, plutôt qu'un traceback MLflow. Cette tâche ne fait volontairement
+**aucun retry** : une erreur de configuration ou d'authentification ne se répare pas en
+réessayant deux minutes plus tard.
 
 Les autres tâches n'en ont pas besoin : la **lecture** du modèle depuis le registry
 DagsHub fonctionne en anonyme, c'est pourquoi l'API démarre sans identifiants.
@@ -194,4 +222,4 @@ preprocessing sur les mêmes données brutes redonne exactement les mêmes fichi
 | `evaluate_model` | Succès — accuracy 0.7761 |
 | `check_model_quality` → `promote_model` | Branche « promotion » validée |
 | `check_model_quality` → `alert_low_quality` | Branche « rejet » validée (seuil forcé à 0.95) |
-| `train_model` | **Non validé** : nécessite un jeton DagsHub (échec attendu et net sans jeton) |
+| `train_model` | **Validé en mode local** : modèle entraîné, loggé et enregistré dans le Model Registry SQLite. Non rejoué en mode DagsHub, faute de droit d'écriture sur le dépôt |
