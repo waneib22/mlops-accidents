@@ -16,6 +16,11 @@ from fastapi import HTTPException
 
 from prometheus_fastapi_instrumentator import Instrumentator
 
+from dotenv import load_dotenv
+load_dotenv()  # Charge .env AVANT tout import mlflow/dagshub :
+                # MLFLOW_TRACKING_URI, MLFLOW_TRACKING_USERNAME, MLFLOW_TRACKING_PASSWORD
+                # doivent être disponibles dès l'import de mlflow.
+
 app = FastAPI(
     title="Accidents Routiers — API de prédiction",
     description=(
