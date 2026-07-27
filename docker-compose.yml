@@ -17,9 +17,12 @@ services:
       - ./src:/app/src
       - ./api:/app/api
     
-    environment:
-      - MLFLOW_TRACKING_USERNAME
-      - MLFLOW_TRACKING_PASSWORD
+    #environment:
+    #  - MLFLOW_TRACKING_USERNAME
+    #  - MLFLOW_TRACKING_PASSWORD
+
+    env_file:
+      - .env
 
 # NOTE : le serveur MLflow local (image mlflow/mlflow) a été retiré.
 # Le tracking se fait désormais sur DagsHub (https://dagshub.com/Melanie94480/mlops-melanie.mlflow),
