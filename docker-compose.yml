@@ -1,4 +1,57 @@
 
+# ─────────────────────────────────────────────────────────────
+# Configuration commune aux conteneurs Airflow
+#
+# Les services Airflow sont derrière le profil "airflow" : `docker compose up`
+# reste strictement identique à avant (api, nginx, prometheus, grafana).
+# Pour les démarrer : `make airflow-up` (voir docs/airflow.md).
+# ─────────────────────────────────────────────────────────────
+x-airflow-common: &airflow-common
+  build:
+    context: ./airflow
+    dockerfile: Dockerfile
+  image: accidents-airflow:latest
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    # Vide = pas de chiffrement des Variables/Connections, comme dans le
+    # docker-compose officiel Airflow. Suffisant ici : aucun secret n'est
+    # stocké en base, les identifiants DagsHub passent par l'environnement.
+    AIRFLOW__CORE__FERNET_KEY: ""
+    # Partagée par le webserver et le scheduler, sinon le webserver ne peut
+    # pas récupérer les logs des tâches.
+    AIRFLOW__WEBSERVER__SECRET_KEY: accidents-mlops-dev
+    PYTHONPATH: /opt/airflow/project
+    ACCIDENTS_API_URL: http://api:8000
+    PROMETHEUS_URL: http://prometheus:9090
+    # Nécessaires à l'écriture dans MLflow/DagsHub lors de l'entraînement.
+    # train_model.py n'appelle plus dagshub.init() (son auth interactive bloque
+    # quand train() tourne en BackgroundTask depuis l'API) : il lit uniquement
+    # ces variables. L'API les charge via load_dotenv(), mais Airflow exécute le
+    # script en direct, il faut donc les lui passer explicitement.
+    MLFLOW_TRACKING_URI: ${MLFLOW_TRACKING_URI:-}
+    MLFLOW_TRACKING_USERNAME: ${MLFLOW_TRACKING_USERNAME:-}
+    MLFLOW_TRACKING_PASSWORD: ${MLFLOW_TRACKING_PASSWORD:-}
+    DAGSHUB_USER_TOKEN: ${DAGSHUB_USER_TOKEN:-}
+  volumes:
+    - ./dags:/opt/airflow/dags
+    # Le projet est monté sous /opt/airflow/project : les tâches exécutent
+    # les scripts de src/ et écrivent dans data/ et metrics/.
+    - ./src:/opt/airflow/project/src
+    - ./data:/opt/airflow/project/data
+    - ./metrics:/opt/airflow/project/metrics
+    # Mode MLflow local (sans DagsHub) : accueille la base SQLite et les
+    # artefacts. Monté même quand le tracking pointe sur DagsHub — dans ce
+    # cas le dossier reste simplement vide.
+    - ./mlruns_local:/opt/airflow/project/mlruns
+    - airflow_logs:/opt/airflow/logs
+  depends_on:
+    airflow-postgres:
+      condition: service_healthy
+  profiles: ["airflow"]
+
 services:
 
 # ─────────────────────
@@ -101,5 +154,84 @@ services:
       - prometheus
 
 
+
+# ─────────────────────
+# Airflow — base de métadonnées
+# ─────────────────────
+  airflow-postgres:
+    image: postgres:16
+    container_name: airflow_postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    profiles: ["airflow"]
+
+
+# ─────────────────────
+# Airflow — initialisation (migrations + compte admin)
+# ─────────────────────
+  airflow-init:
+    <<: *airflow-common
+    container_name: airflow_init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db migrate
+        airflow users create \
+          --username admin --password admin \
+          --firstname Admin --lastname Accidents \
+          --role Admin --email admin@example.com || true
+    restart: "no"
+
+
+# ─────────────────────
+# Airflow — webserver (UI sur http://localhost:8080)
+# ─────────────────────
+  airflow-webserver:
+    <<: *airflow-common
+    container_name: airflow_webserver
+    command: webserver
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+
+# ─────────────────────
+# Airflow — scheduler
+# ─────────────────────
+  airflow-scheduler:
+    <<: *airflow-common
+    container_name: airflow_scheduler
+    command: scheduler
+    restart: unless-stopped
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
+
+
 volumes:
   grafana_data:
+  airflow_pgdata:
+  airflow_logs:

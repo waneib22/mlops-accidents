@@ -1,0 +1,20 @@
+# Dépendances ML nécessaires aux tâches des DAGs.
+#
+# Elles s'ajoutent à l'image officielle Airflow, qui ne contient que
+# l'orchestrateur. L'installation se fait sous les contraintes officielles
+# Airflow (voir airflow/Dockerfile) : les paquets partagés avec Airflow
+# (flask, protobuf, sqlalchemy…) restent ainsi sur des versions compatibles
+# avec l'orchestrateur, et un conflit échoue au build plutôt qu'au runtime.
+
+pandas>=2.0,<3.0
+numpy
+scikit-learn
+imbalanced-learn
+joblib
+
+# Tracking et Model Registry sur DagsHub
+mlflow>=2.0
+dagshub>=0.5.0
+
+# Appels HTTP vers l'API (DAG de supervision)
+requests
